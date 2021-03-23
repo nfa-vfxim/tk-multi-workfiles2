@@ -112,36 +112,6 @@ def get_sg_entity_name_field(entity_type):
     }.get(entity_type, "code")
 
 
-def get_model_data(item_or_index, role=QtCore.Qt.DisplayRole):
-    """
-    Safely get the Qt model data for the specified item or index.  This handles QVariant
-    types returned when using PyQt instead of PySide.
-
-    :param item_or_index:   The QStandardModelItem or QModelIndex to retrieve data for
-    :param role:            The Qt data role to return data for
-    :returns:               The data for the specified item or index.
-    """
-    data = item_or_index.data(role)
-    if hasattr(QtCore, "QVariant") and isinstance(data, QtCore.QVariant):
-        # handle PyQt!
-        data = data.toPyObject()
-    return data
-
-
-def get_model_str(item_or_index, role=QtCore.Qt.DisplayRole):
-    """
-    Safely get the Qt model data as a Python string for the specified item or index.  This
-    handles QVariant types returned when using PyQt instead of PySide.
-
-    :param item_or_index:   The QStandardModelItem or QModelIndex to retrieve a string for
-    :param role:            The Qt data role to return as a string
-    :returns:               A Python string representing the data for the specified item
-                            or index.
-    """
-    data = get_model_data(item_or_index, role)
-    return value_to_str(data)
-
-
 def map_to_source(idx, recursive=True):
     """
     Map the specified index to it's source model.  This can be done recursively to map

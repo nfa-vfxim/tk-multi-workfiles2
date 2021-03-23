@@ -21,7 +21,6 @@ from ..ui.entity_tree_form import Ui_EntityTreeForm
 from .entity_tree_proxy_model import EntityTreeProxyModel
 from ..framework_qtwidgets import Breadcrumb, overlay_widget
 from ..util import (
-    get_model_str,
     map_to_source,
     get_source_model,
     monitor_qobject_lifetime,
@@ -355,7 +354,7 @@ class EntityTreeForm(QtGui.QWidget):
                 # look for a child item that has the same label:
                 for row in range(current_item.rowCount()):
                     child_item = current_item.child(row)
-                    if get_model_str(child_item) == crumb.label:
+                    if child_item.data(QtCore.Qt.DisplayRole) == crumb.label:
                         found_item = child_item
                         break
 
@@ -445,7 +444,7 @@ class EntityTreeForm(QtGui.QWidget):
             return {}
 
         # get details for this item:
-        label = get_model_str(item)
+        label = item.data(QtCore.Qt.DisplayRole)
         entity = entity_model.get_entity(item)
 
         # get details for children:
@@ -459,7 +458,7 @@ class EntityTreeForm(QtGui.QWidget):
             if not child_item:
                 continue
 
-            child_label = get_model_str(child_item)
+            child_label = child_item.data(QtCore.Qt.DisplayRole)
             child_entity = entity_model.get_entity(child_item)
             children.append({"label": child_label, "entity": child_entity})
 
@@ -475,7 +474,7 @@ class EntityTreeForm(QtGui.QWidget):
                     if not grandchild_item:
                         continue
 
-                    grandchild_label = get_model_str(grandchild_item)
+                    grandchild_label = grandchild_item.data(QtCore.Qt.DisplayRole)
                     grandchild_entity = entity_model.get_entity(grandchild_item)
                     if grandchild_entity and grandchild_entity["type"] == "Task":
                         # found a task under a step so we can safely collapse tasks to steps!
@@ -854,7 +853,7 @@ class EntityTreeForm(QtGui.QWidget):
                 label = "<b>%s</b> %s" % (display_type, entity.get(name_token))
                 breadcrumbs.append(EntityTreeForm._EntityBreadcrumb(label, entity))
             else:
-                label = get_model_str(src_index)
+                label = src_index.data(QtCore.Qt.DisplayRole)
                 breadcrumbs.append(Breadcrumb(label))
 
             src_index = src_index.parent()

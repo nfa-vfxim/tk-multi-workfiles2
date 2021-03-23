@@ -15,7 +15,6 @@ from tank_vendor import six
 
 from ..file_model import FileModel
 from ..framework_qtwidgets import HierarchicalFilteringProxyModel
-from ..util import get_model_data, get_model_str
 
 
 class FileProxyModel(HierarchicalFilteringProxyModel):
@@ -107,14 +106,14 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
             return False
 
         # try to get the work area and see if this item should be filtered:
-        work_area = get_model_data(src_idx, FileModel.WORK_AREA_ROLE)
+        work_area = src_idx.data(FileModel.WORK_AREA_ROLE)
         if work_area and work_area.context and work_area.context.user:
             user_ids = set(u["id"] for u in self._filters.users if u)
             if work_area.context.user["id"] not in user_ids:
                 return False
 
         # get the file item and see if it should be filtered:
-        file_item = get_model_data(src_idx, FileModel.FILE_ITEM_ROLE)
+        file_item = src_idx.data(FileModel.FILE_ITEM_ROLE)
         if file_item:
             ## Filter based on showing work files, publishes or both:
             if not (file_item.is_local and self._show_workfiles) and not (
@@ -151,7 +150,7 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
             if reg_exp.indexIn(file_item.name) != -1:
                 return True
         else:
-            if reg_exp.indexIn(get_model_str(src_idx)) != -1:
+            if reg_exp.indexIn(src_idx.data(QtCore.Qt.DisplayRole)) != -1:
                 return True
 
         # default is to not match:
@@ -177,16 +176,16 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
                 return right_src_idx.row() < left_src_idx.row()
 
         # get the items:
-        left_item = get_model_data(left_src_idx, FileModel.FILE_ITEM_ROLE)
-        right_item = get_model_data(right_src_idx, FileModel.FILE_ITEM_ROLE)
+        left_item = left_src_idx.data(FileModel.FILE_ITEM_ROLE)
+        right_item = right_src_idx.data(FileModel.FILE_ITEM_ROLE)
 
         # handle the case where one or both items are not file items:
         if not left_item:
             if not right_item:
                 # sort in alphabetical order:
                 is_less_than = (
-                    get_model_str(left_src_idx).lower()
-                    < get_model_str(right_src_idx).lower()
+                    left_src_idx.data(QtCore.Qt.DisplayRole).lower()
+                    < right_src_idx.data(QtCore.Qt.DisplayRole).lower()
                 )
                 if self.sortOrder() == QtCore.Qt.AscendingOrder:
                     return is_less_than

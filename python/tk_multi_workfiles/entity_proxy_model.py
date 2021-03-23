@@ -14,8 +14,6 @@ from tank_vendor import six
 
 from .framework_qtwidgets import HierarchicalFilteringProxyModel
 
-from .util import get_model_str
-
 
 class EntityProxyModel(HierarchicalFilteringProxyModel):
     """
@@ -85,7 +83,7 @@ class EntityProxyModel(HierarchicalFilteringProxyModel):
             return False
 
         # test to see if the item 'text' matches:
-        if reg_exp.indexIn(get_model_str(src_idx)) != -1:
+        if reg_exp.indexIn(src_idx.data(QtCore.Qt.DisplayRole)) != -1:
             # found a match so early out!
             return True
 

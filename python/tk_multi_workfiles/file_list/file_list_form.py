@@ -20,7 +20,7 @@ from sgtk.platform.qt import QtCore, QtGui
 from ..file_model import FileModel
 from ..ui.file_list_form import Ui_FileListForm
 from .file_proxy_model import FileProxyModel
-from ..util import get_model_data, map_to_source, get_source_model
+from ..util import map_to_source, get_source_model
 from ..framework_qtwidgets import ViewItemDelegate
 
 
@@ -312,12 +312,8 @@ class FileListForm(QtGui.QWidget):
         if selection_model:
             selected_indexes = selection_model.selectedIndexes()
             if len(selected_indexes) == 1:
-                selected_file = get_model_data(
-                    selected_indexes[0], FileModel.FILE_ITEM_ROLE
-                )
-                env_details = get_model_data(
-                    selected_indexes[0], FileModel.WORK_AREA_ROLE
-                )
+                selected_file = selected_indexes[0].data(FileModel.FILE_ITEM_ROLE)
+                env_details = selected_indexes[0].data(FileModel.WORK_AREA_ROLE)
 
         return (selected_file, env_details)
 
@@ -498,12 +494,8 @@ class FileListForm(QtGui.QWidget):
                 env_details = None
                 if selected_item:
                     # extract the file item from the index:
-                    selected_file = get_model_data(
-                        selected_item, FileModel.FILE_ITEM_ROLE
-                    )
-                    env_details = get_model_data(
-                        selected_item, FileModel.WORK_AREA_ROLE
-                    )
+                    selected_file = selected_item.data(FileModel.FILE_ITEM_ROLE)
+                    env_details = selected_item.data(FileModel.WORK_AREA_ROLE)
 
                 # emit the signal
                 self.file_selected.emit(
@@ -547,12 +539,12 @@ class FileListForm(QtGui.QWidget):
             return
 
         # get the file from the index:
-        file_item = get_model_data(idx, FileModel.FILE_ITEM_ROLE)
+        file_item = idx.data(FileModel.FILE_ITEM_ROLE)
         if not file_item:
             return
 
         # ...and the env details:
-        env_details = get_model_data(idx, FileModel.WORK_AREA_ROLE)
+        env_details = idx.data(FileModel.WORK_AREA_ROLE)
 
         # remap the point from the source widget:
         pnt = self.sender().mapTo(self, pnt)
@@ -660,15 +652,15 @@ class FileListForm(QtGui.QWidget):
 
         :param idx:    The model index of the item that was double-clicked
         """
-        item_type = get_model_data(idx, FileModel.NODE_TYPE_ROLE)
+        item_type = idx.data(FileModel.NODE_TYPE_ROLE)
         if item_type == FileModel.FOLDER_NODE_TYPE:
             # selection is a folder/child so move into it
             # TODO
             pass
         elif item_type == FileModel.FILE_NODE_TYPE:
             # this is a file so perform the default action for the file
-            selected_file = get_model_data(idx, FileModel.FILE_ITEM_ROLE)
-            env_details = get_model_data(idx, FileModel.WORK_AREA_ROLE)
+            selected_file = idx.data(FileModel.FILE_ITEM_ROLE)
+            env_details = idx.data(FileModel.WORK_AREA_ROLE)
             self.file_double_clicked.emit(selected_file, env_details)
 
     def _on_selection_changed(self, selected, deselected):
@@ -692,8 +684,8 @@ class FileListForm(QtGui.QWidget):
         env_details = None
         if item:
             # extract the file item from the index:
-            selected_file = get_model_data(item, FileModel.FILE_ITEM_ROLE)
-            env_details = get_model_data(item, FileModel.WORK_AREA_ROLE)
+            selected_file = item.data(FileModel.FILE_ITEM_ROLE)
+            env_details = item.data(FileModel.WORK_AREA_ROLE)
 
         self._current_item_ref = weakref.ref(item) if item else None
         if self._current_item_ref:
