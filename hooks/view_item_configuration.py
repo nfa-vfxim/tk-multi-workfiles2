@@ -89,11 +89,6 @@ class ViewItemConfiguration(HookClass):
             )
 
             sandbox_user_name = extra_data.get("sandbox_user_name")
-
-            # TEMP testing
-            if not sandbox_user_name:
-                sandbox_user_name = "Test User"
-
             if sandbox_user_name:
                 user_str = (
                     "<span style='font: 10px; color: rgb(0, 178, 236);'> (%s Files)</span>"
