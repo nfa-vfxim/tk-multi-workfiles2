@@ -166,23 +166,25 @@ class FileListForm(QtGui.QWidget):
 
     def _setup_view_item_delegate(self, view):
         """
-        Create and set up a :class:`ViewItemDelegate` object to set to the given view.
+        Create and set up a :class:`ViewItemDelegate` object for the given view.
         """
 
         delegate = ViewItemDelegate(view)
 
-        # Set the delegate model data roles
+        # Set the item data roles used by the delegate to render an item.
         delegate.title_role = FileModel.VIEW_ITEM_TITLE_ROLE
         delegate.subtitle_role = FileModel.VIEW_ITEM_SUBTITLE_ROLE
         delegate.details_role = FileModel.VIEW_ITEM_DETAILS_ROLE
+        # Set the role to display icons/badges over the thumbnail.
         delegate.icon_role = FileModel.VIEW_ITEM_ICON_ROLE
+        # Set the role to expand and collapse an item row.
         delegate.expand_role = FileModel.VIEW_ITEM_EXPAND_ROLE
+        # Set the role to provide a width hint.
         delegate.width_role = FileModel.VIEW_ITEM_WIDTH_ROLE
+        # Set the role to provide a loading status.
         delegate.loading_role = FileModel.VIEW_ITEM_LOADING_ROLE
+        # Set the role to indicate whether or not the item has a separator.
         delegate.separator_role = FileModel.VIEW_ITEM_SEPARATOR_ROLE
-
-        # Set any delegate style properties
-        delegate.selection_brush = QtGui.QBrush(QtGui.QColor(0, 178, 236))
 
         # Create an icon for the expand header action
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
@@ -191,6 +193,7 @@ class FileListForm(QtGui.QWidget):
             QtGui.QIcon.Mode.Normal,
             QtGui.QIcon.State.On,
         )
+        # Add an expand action for group header items
         delegate.add_actions(
             [
                 {
@@ -204,10 +207,10 @@ class FileListForm(QtGui.QWidget):
             ViewItemDelegate.LEFT,
         )
 
-        # Set up the view with the delegate
-        view.setItemDelegate(delegate)
+        # Enable mouse tracking for the delegate to receive mouse events
         view.setMouseTracking(True)
 
+        view.setItemDelegate(delegate)
         return delegate
 
     def get_action_data_for_index(self, parent, index):
