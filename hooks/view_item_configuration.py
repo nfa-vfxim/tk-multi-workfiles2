@@ -41,10 +41,14 @@ class ViewItemConfiguration(HookClass):
         Returns the data to display for this model index item's thumbnail.
 
         :param item: The model item.
-        :type item: :class:`FileModelItem` | :class:`GroupModelItem`
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
         :param file_item: The FileItem associated with the item. This will be None
-                          for :class:`GroupModelItem` items.
+                          for non :class:`FilepModelItem` items.
         :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
+        :type is_header: bool
+        :param extra_data: Extra data for the item.
+        :type extra_data: dict
 
         :return: The item thumbnail.
         :rtype: :class:`sgtk.platform.qt.QtGui.QPixmap`
@@ -61,11 +65,13 @@ class ViewItemConfiguration(HookClass):
         is passed via the `extra_data` key `sandbox_user_name`.
 
         :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-        :param is_header: True indicates the item is a header, opposed to a data (file) item.
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
+        :param file_item: The FileItem associated with the item. This will be None
+                          for non :class:`FilepModelItem` items.
+        :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
         :type is_header: bool
-        :param extra_data: Additional data for this item that may be formatted and displayed
-                           as desired.
+        :param extra_data: Extra data for the item.
         :type extra_data: dict
 
         :return: The title for this item.
@@ -109,11 +115,13 @@ class ViewItemConfiguration(HookClass):
         that pass a `search_msg` key-value in `extra_data`.
 
         :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-        :param is_header: True indicates the item is a header, opposed to a data (file) item.
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
+        :param file_item: The FileItem associated with the item. This will be None
+                          for non :class:`FilepModelItem` items.
+        :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
         :type is_header: bool
-        :param extra_data: Additional data for this item that may be formatted and displayed
-                           as desired.
+        :param extra_data: Extra data for the item.
         :type extra_data: dict
 
         :return: The subtitle for this item.
@@ -136,11 +144,14 @@ class ViewItemConfiguration(HookClass):
         Returns the details data to display for this model index item.
 
         :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-        :param is_header: True indicates the item is a header, opposed to a data (file) item.
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
+        :param file_item: The FileItem associated with the item. This will be None
+                          for non :class:`FilepModelItem` items.
+        :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
         :type is_header: bool
-        :param extra_data: Additional data for this item that may be formatted and displayed
-                           as desired.
+        :param extra_data: Extra data for the item.
+        :type extra_data: dict
 
         :return: The details for this item.
         :rtype: list<str>
@@ -180,12 +191,14 @@ class ViewItemConfiguration(HookClass):
         Returns the icon data to display for this model index item.
 
         :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-                and :class:`sgtk.platform.qt.QtGui.QPixmap` values.
-        :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-        :param is_header: True indicates the item is a header, opposed to a data (file) item.
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
+        :param file_item: The FileItem associated with the item. This will be None
+                          for non :class:`FilepModelItem` items.
+        :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
         :type is_header: bool
+        :param extra_data: Extra data for the item.
+        :type extra_data: dict
 
         :return: The icon data to display.
         :rtype: dict, for e.g.:
@@ -221,10 +234,14 @@ class ViewItemConfiguration(HookClass):
         used to indicate to the delegate to draw a line separator for the item or not.
 
         :param item: The model item.
-        :type item: :class:`FileModelItem` | :class:`GroupModelItem`
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
         :param file_item: The FileItem associated with the item. This will be None
-                          for :class:`GroupModelItem` items.
+                          for non :class:`FilepModelItem` items.
         :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
+        :type is_header: bool
+        :param extra_data: Extra data for the item.
+        :type extra_data: dict
 
         :return: True to indicate the item has a separator, else False.
         :rtype: bool
@@ -240,10 +257,14 @@ class ViewItemConfiguration(HookClass):
         set up, this method will not affect the row width.
 
         :param item: The model item.
-        :type item: :class:`FileModelItem` | :class:`GroupModelItem`
+        :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
         :param file_item: The FileItem associated with the item. This will be None
-                          for :class:`GroupModelItem` items.
+                          for non :class:`FilepModelItem` items.
         :type file_item: :class:`FileItem`
+        :param is_header: True if this is a group header item.
+        :type is_header: bool
+        :param extra_data: Extra data for the item.
+        :type extra_data: dict
 
         :return: The item rect display width
         :rtype: int
