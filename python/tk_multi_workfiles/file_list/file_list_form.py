@@ -197,6 +197,9 @@ class FileListForm(QtGui.QWidget):
         # Set the role to indicate whether or not the item has a separator.
         delegate.separator_role = FileModel.VIEW_ITEM_SEPARATOR_ROLE
 
+        # Scale the thumbnail width according to the row height
+        delegate.scale_thumbnail_to_row_height(1.5)
+
         # Create an icon for the expand header action
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
         expand_icon.addPixmap(
