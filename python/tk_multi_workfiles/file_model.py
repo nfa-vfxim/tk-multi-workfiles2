@@ -342,10 +342,14 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             elif role == FileModel.WORK_AREA_ROLE:
                 data = self._work_area
 
+            elif role == FileModel.VIEW_ITEM_HEIGHT_ROLE:
+                # Group item height always adjusts to content size
+                data = -1
+
             elif role == FileModel.VIEW_ITEM_LOADING_ROLE:
                 # Indicate that this group item is in a loading state
                 search_status = self.data(FileModel.SEARCH_STATUS_ROLE)
-                return search_status == FileModel.SEARCHING
+                data = search_status == FileModel.SEARCHING
 
             else:
                 data = FileModel._BaseModelItem.data(self, role)

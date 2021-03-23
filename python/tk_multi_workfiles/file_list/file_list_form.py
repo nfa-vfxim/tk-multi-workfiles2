@@ -51,6 +51,7 @@ class FileListForm(QtGui.QWidget):
 
     # Settings keys
     VIEW_MODE_SETTING = "view_mode"
+    ITEM_SIZE_SCALE_VALUE = "view_item_size_scale"
 
     def __init__(
         self,
@@ -161,6 +162,14 @@ class FileListForm(QtGui.QWidget):
         )
         self._ui.list_mode.setIcon(list_icon)
 
+        # Set up the item size slider
+        scale_val = self._settings_manager.retrieve(self.ITEM_SIZE_SCALE_VALUE, 25)
+        file_item_delegate.row_height = scale_val
+        self._ui.item_size_slider.setValue(scale_val)
+        self._ui.item_size_slider.valueChanged.connect(
+            self._on_view_item_size_slider_change
+        )
+
         cur_view_mode = self._settings_manager.retrieve(self.VIEW_MODE_SETTING, 0)
         self._set_view_mode(cur_view_mode)
 
@@ -181,6 +190,8 @@ class FileListForm(QtGui.QWidget):
         delegate.expand_role = FileModel.VIEW_ITEM_EXPAND_ROLE
         # Set the role to provide a width hint.
         delegate.width_role = FileModel.VIEW_ITEM_WIDTH_ROLE
+        # Set the role to provide a height hint.
+        delegate.height_role = FileModel.VIEW_ITEM_HEIGHT_ROLE
         # Set the role to provide a loading status.
         delegate.loading_role = FileModel.VIEW_ITEM_LOADING_ROLE
         # Set the role to indicate whether or not the item has a separator.
@@ -200,7 +211,7 @@ class FileListForm(QtGui.QWidget):
                     "icon": expand_icon,
                     "show_always": True,
                     "features": QtGui.QStyleOptionButton.Flat,
-                    "get_data": self.get_action_data_for_index,
+                    "get_data": self._get_expand_action_data,
                     "callback": lambda view, index, pos: view.toggle_expand(index),
                 },
             ],
@@ -212,49 +223,6 @@ class FileListForm(QtGui.QWidget):
 
         view.setItemDelegate(delegate)
         return delegate
-
-    def get_action_data_for_index(self, parent, index):
-        """
-        """
-
-        visible = not index.parent().isValid()
-        state = QtGui.QStyle.State_Active | QtGui.QStyle.State_Enabled
-
-        if parent.is_expanded(index):
-            state |= QtGui.QStyle.State_Off
-        else:
-            state |= QtGui.QStyle.State_On
-
-        return {"visible": visible, "state": state}
-
-    def _set_view_mode(self, mode_index):
-        """
-        Set the view mode for the main view.
-
-        :param mode_index: The mode to set the view to.
-        :type mode_index: int
-
-        :return: None
-        """
-
-        assert 0 <= mode_index < len(self.view_modes), "Undefined view mode"
-
-        # Clear any selection on changing the view mode.
-        if self._ui.file_list_view.selectionModel():
-            self._ui.file_list_view.selectionModel().clear()
-
-        for i, view_mode in enumerate(self.view_modes):
-            is_cur_mode = i == mode_index
-            view_mode["button"].setChecked(is_cur_mode)
-            if is_cur_mode:
-                delegate = view_mode["delegate"]
-                delegate.row_width = view_mode.get("row_width")
-                self._ui.file_list_view.setItemDelegate(delegate)
-
-        self._ui.file_list_view._update_all_item_info = True
-        self._ui.file_list_view.viewport().update()
-
-        self._settings_manager.store(self.VIEW_MODE_SETTING, mode_index)
 
     def shut_down(self):
         """
@@ -712,3 +680,81 @@ class FileListForm(QtGui.QWidget):
 
         # emit file selected signal:
         self.file_selected.emit(selected_file, env_details, FileListForm.USER_SELECTED)
+
+    def _set_view_mode(self, mode_index):
+        """
+        Set the view mode for the main view.
+
+        :param mode_index: The mode to set the view to.
+        :type mode_index: int
+
+        :return: None
+        """
+
+        assert 0 <= mode_index < len(self.view_modes), "Undefined view mode"
+
+        # Clear any selection on changing the view mode.
+        if self._ui.file_list_view.selectionModel():
+            self._ui.file_list_view.selectionModel().clear()
+
+        for i, view_mode in enumerate(self.view_modes):
+            is_cur_mode = i == mode_index
+            view_mode["button"].setChecked(is_cur_mode)
+            if is_cur_mode:
+                delegate = view_mode["delegate"]
+                delegate.row_width = view_mode.get("row_width")
+                self._ui.file_list_view.setItemDelegate(delegate)
+
+        self._ui.file_list_view._update_all_item_info = True
+        self._ui.file_list_view.viewport().update()
+
+        self._settings_manager.store(self.VIEW_MODE_SETTING, mode_index)
+
+    def _on_view_item_size_slider_change(self, value):
+        """
+        Slot triggered on the view item size slider value changed.
+
+        :param value: The value of the slider.
+        :return: None
+        """
+
+        for view_mode in self.view_modes:
+            delegate = view_mode["delegate"]
+            if not delegate:
+                continue
+            if isinstance(delegate, ViewItemDelegate):
+                delegate.row_height = value
+
+        self._ui.file_list_view._update_all_item_info = True
+        self._ui.file_list_view.viewport().update()
+
+        self._settings_manager.store(self.ITEM_SIZE_SCALE_VALUE, value)
+
+    def _get_expand_action_data(self, parent, index):
+        """
+        Return the action data for the group header expand action, and for the given index.
+        This data will determine how the action is displayed for the index.
+
+        :param parent: This is the parent of the :class:`ViewItemDelegate`, which is the file view.
+        :type parent: :class:`GroupItemView`
+        :param index: The index the action is for.
+        :type index: :class:`sgtk.platform.qt.QtCore.QModelIndex`
+        :return: The data for the action and index.
+        :rtype: dict, e.g.:
+            {
+                "visible": bool  # Flag indicating whether the action is displayed or not
+                "state": :class:`sgtk.platform.qt.QtGui.QStyle.StateFlag`  # Flag indicating state of the icon
+                                                                        # e.g. enabled/disabled, on/off, etc.
+                "name": str # Override the default action name for this index
+            }
+        """
+
+        visible = not index.parent().isValid()
+        state = QtGui.QStyle.State_Active | QtGui.QStyle.State_Enabled
+
+        if parent.is_expanded(index):
+            state |= QtGui.QStyle.State_Off
+        else:
+            state |= QtGui.QStyle.State_On
+
+        return {"visible": visible, "state": state}
