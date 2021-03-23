@@ -12,10 +12,10 @@ class Ui_FileListForm(object):
     def setupUi(self, FileListForm):
         FileListForm.setObjectName("FileListForm")
         FileListForm.resize(961, 863)
-        self.horizontalLayout_7 = QtGui.QHBoxLayout(FileListForm)
-        self.horizontalLayout_7.setSpacing(4)
-        self.horizontalLayout_7.setContentsMargins(2, 6, 2, 2)
-        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+        self.verticalLayout = QtGui.QVBoxLayout(FileListForm)
+        self.verticalLayout.setSpacing(4)
+        self.verticalLayout.setContentsMargins(2, 6, 2, 2)
+        self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_8 = QtGui.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.verticalLayout_2 = QtGui.QVBoxLayout()
@@ -127,8 +127,34 @@ class Ui_FileListForm(object):
         self.horizontalLayout_4.addWidget(self.file_details_view)
         self.view_pages.addWidget(self.details_page)
         self.verticalLayout_2.addWidget(self.view_pages)
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem1)
+        self.item_size_slider = QtGui.QSlider(FileListForm)
+        self.item_size_slider.setStyleSheet("QSlider::groove:horizontal {\n"
+"     /*border: 1px solid #999999; */\n"
+"     height: 2px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */\n"
+"     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3F3F3F, stop:1 #545454);\n"
+"     margin: 2px 0;\n"
+"     border-radius: 1px;\n"
+" }\n"
+"\n"
+" QSlider::handle:horizontal {\n"
+"     background: #545454;\n"
+"     border: 1px solid #B6B6B6;\n"
+"     width: 5px;\n"
+"     margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */\n"
+"     border-radius: 3px;\n"
+" }\n"
+"")
+        self.item_size_slider.setMaximum(100)
+        self.item_size_slider.setOrientation(QtCore.Qt.Horizontal)
+        self.item_size_slider.setObjectName("item_size_slider")
+        self.horizontalLayout.addWidget(self.item_size_slider)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_8.addLayout(self.verticalLayout_2)
-        self.horizontalLayout_7.addLayout(self.horizontalLayout_8)
+        self.verticalLayout.addLayout(self.horizontalLayout_8)
 
         self.retranslateUi(FileListForm)
         self.view_pages.setCurrentIndex(0)
