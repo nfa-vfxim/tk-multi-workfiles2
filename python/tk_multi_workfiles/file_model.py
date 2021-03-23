@@ -17,14 +17,19 @@ from sgtk.platform.qt import QtGui, QtCore
 from .file_finder import AsyncFileFinder
 from .user_cache import g_user_cache
 from .file_search_cache import FileSearchCache
+from .util import value_to_str
+from .errors import MissingTemplatesError
 
 shotgun_data = sgtk.platform.import_framework(
     "tk-framework-shotgunutils", "shotgun_data"
 )
 ShotgunDataRetriever = shotgun_data.ShotgunDataRetriever
 
+delegates = sgtk.platform.import_framework("tk-framework-qtwidgets", "delegates")
+ViewItemRolesMixin = delegates.ViewItemRolesMixin
 
-class FileModel(QtGui.QStandardItemModel):
+
+class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
     """
     The FileModel maintains a model of all files (work files and publishes) found for a matrix of
     entities and users.  Details of each 'version' of a file are contained in a FileItem instance
@@ -69,13 +74,26 @@ class FileModel(QtGui.QStandardItemModel):
     # enumeration of search status:
     (SEARCHING, SEARCH_COMPLETED, SEARCH_FAILED) = range(3)
 
-    # additional data roles defined for the model:
+    # Additional data roles defined for the model
     _BASE_ROLE = QtCore.Qt.UserRole + 32
-    NODE_TYPE_ROLE = _BASE_ROLE + 1  # type of node in model (e.g. FILE_NODE_TYPE)
-    FILE_ITEM_ROLE = _BASE_ROLE + 2  # FileItem data
-    WORK_AREA_ROLE = _BASE_ROLE + 3  # WorkArea data
-    SEARCH_STATUS_ROLE = _BASE_ROLE + 4  # search status data
-    SEARCH_MSG_ROLE = _BASE_ROLE + 5  # search message data
+    (
+        NODE_TYPE_ROLE,  # type of node in model (e.g. FILE_NODE_TYPE)
+        FILE_ITEM_ROLE,  # FileItem data
+        WORK_AREA_ROLE,  # WorkArea data
+        SEARCH_STATUS_ROLE,  # search status data
+        SEARCH_MSG_ROLE,  # search message data
+        NEXT_AVAILABLE_ROLE,  # Keep track of the next available custome role. Insert new roles above.
+    ) = range(_BASE_ROLE, _BASE_ROLE + 6)
+
+    # The list of roles which return a string value. This is used in the data method to ensure string data is santized.
+    # This must be called after the ViewItemRolesMixin initializes its own roles.
+    STRING_ROLES = [
+        QtCore.Qt.DisplayRole,
+        SEARCH_MSG_ROLE,
+    ]
+
+    # hook paths
+    HOOK_PATH_VIEW_ITEM_CONFIG = "view_item_configuration_hook"
 
     class _BaseModelItem(QtGui.QStandardItem):
         """
@@ -97,11 +115,26 @@ class FileModel(QtGui.QStandardItemModel):
             :param role:    The role to return data for.
             :returns:       Data for the specified role
             """
-            if role == FileModel.NODE_TYPE_ROLE:
+
+            # Check if the model has a method defined for retrieving the item data for this role.
+            data_method = self.model().get_method_for_role(role)
+
+            if data_method:
+                try:
+                    (args, kwargs) = self.model()._get_args_for_role_method(self, role)
+                    return data_method(*args, extra_data=kwargs)
+                except TypeError as error:
+                    raise sgtk.TankError(
+                        "Failed to execute the method defined to retrieve item data for role `{role}`.\nError: {msg}".format(
+                            role=role, msg=error
+                        )
+                    )
+
+            elif role == FileModel.NODE_TYPE_ROLE:
                 return self._type
+
             else:
-                # just return the default implementation:
-                return QtGui.QStandardItem.data(self, role)
+                return super(FileModel._BaseModelItem, self).data(role)
 
         def setData(self, value, role):
             """
@@ -152,15 +185,29 @@ class FileModel(QtGui.QStandardItemModel):
             :param role:    The role to return data for.
             :returns:       Data for the specified role
             """
+
             if role == QtCore.Qt.DisplayRole:
-                return "%s, v%0d" % (self._file_item.name, self._file_item.version)
+                data = "%s, v%0d" % (self._file_item.name, self._file_item.version)
+
+            elif role == QtCore.Qt.DecorationRole:
+                data = self._file_item.thumbnail
+                if not data:
+                    # Default thumbnail to empty image
+                    data = ":/tk-multi-workfiles2/thumb_empty.png"
+
+                if isinstance(data, six.string_types):
+                    data = QtGui.QPixmap(data)
+
             elif role == FileModel.FILE_ITEM_ROLE:
-                return self._file_item
+                data = self._file_item
+
             elif role == FileModel.WORK_AREA_ROLE:
-                return self._work_area
+                data = self._work_area
+
             else:
-                # just return the default implementation:
-                return FileModel._BaseModelItem.data(self, role)
+                data = super(FileModel._FileModelItem, self).data(role)
+
+            return FileModel.sanitize_data(data, role)
 
         def setData(self, value, role):
             """
@@ -204,6 +251,21 @@ class FileModel(QtGui.QStandardItemModel):
             :returns:   An entity dictionary representing the entity represented by this item
             """
             return self._entity
+
+        def data(self, role):
+            """
+            Return the data from the item for the specified role.
+
+            :param role:    The role to return data for.
+            """
+
+            if role == QtCore.Qt.DecorationRole:
+                data = QtGui.QPixmap(":/tk-multi-workfiles2/folder_512x400.png")
+
+            else:
+                data = super(FileModel._FolderModelItem, self).data(role)
+
+            return FileModel.sanitize_data(data, role)
 
     class _GroupModelItem(_BaseModelItem):
         """
@@ -270,15 +332,26 @@ class FileModel(QtGui.QStandardItemModel):
             :param role:    The role to return data for.
             :returns:       Data for the specified role
             """
+
             if role == FileModel.SEARCH_STATUS_ROLE:
-                return self._search_status
+                data = self._search_status
+
             elif role == FileModel.SEARCH_MSG_ROLE:
-                return self._search_msg
+                data = self._search_msg
+
             elif role == FileModel.WORK_AREA_ROLE:
-                return self._work_area
+                data = self._work_area
+
+            elif role == FileModel.VIEW_ITEM_LOADING_ROLE:
+                # Indicate that this group item is in a loading state
+                search_status = self.data(FileModel.SEARCH_STATUS_ROLE)
+                return search_status == FileModel.SEARCHING
+
             else:
-                # just return the default implementation:
-                return FileModel._BaseModelItem.data(self, role)
+                data = FileModel._BaseModelItem.data(self, role)
+
+            # Sanitize the data before returning
+            return FileModel.sanitize_data(data, role)
 
         def setData(self, value, role):
             """
@@ -348,6 +421,58 @@ class FileModel(QtGui.QStandardItemModel):
         self._finder.search_failed.connect(self._on_finder_search_failed)
         self._finder.work_area_resolved.connect(self._on_finder_work_area_resolved)
         self._finder.work_area_found.connect(self._on_finder_work_area_found)
+
+        # Add additional roles defined by the ViewItemRolesMixin class.
+        self.NEXT_AVAILABLE_ROLE = self.initialize_roles(self.NEXT_AVAILABLE_ROLE)
+        # Add additional roles to the string roles list, ensure there are no duplicates.
+        self.STRING_ROLES.extend(
+            [
+                self.VIEW_ITEM_TITLE_ROLE,
+                self.VIEW_ITEM_SUBTITLE_ROLE,
+                self.VIEW_ITEM_SHORT_TEXT_ROLE,
+            ]
+        )
+        self.STRING_ROLES = list(set(self.STRING_ROLES))
+
+        # Get the hook instance to allow customizing the view item display
+        view_item_config_hook_path = self._app.get_setting(
+            self.HOOK_PATH_VIEW_ITEM_CONFIG
+        )
+        view_item_config_hook = self._app.create_hook_instance(
+            view_item_config_hook_path
+        )
+
+        # Create a mapping of model item data roles to the method that will be called to retrieve
+        # the data for the item. The methods defined for each role must accept two parameters:
+        # (1) QStandardItem (2) dict
+        self.role_methods = {
+            self.VIEW_ITEM_THUMBNAIL_ROLE: view_item_config_hook.get_item_thumbnail,
+            self.VIEW_ITEM_TITLE_ROLE: view_item_config_hook.get_item_title,
+            self.VIEW_ITEM_SUBTITLE_ROLE: view_item_config_hook.get_item_subtitle,
+            self.VIEW_ITEM_DETAILS_ROLE: view_item_config_hook.get_item_details,
+            self.VIEW_ITEM_ICON_ROLE: view_item_config_hook.get_item_icons,
+            self.VIEW_ITEM_WIDTH_ROLE: view_item_config_hook.get_item_width,
+            self.VIEW_ITEM_SEPARATOR_ROLE: view_item_config_hook.get_item_separator,
+        }
+
+    @staticmethod
+    def sanitize_data(data, role):
+        """
+        Sanitize the Qt model data (data returned from :class:`sgkt.platform.qt.QtGui.QStandardItem` data
+        method). This handles QVariant types returned when using PyQt instead of PySide and safely converts
+        value to string, if the `role` is in the STRING_ROLES list.
+
+        :param data: The data to sanitize.
+        :return: The sanitized data.
+        """
+
+        if data and hasattr(QtCore, "QVariant") and isinstance(data, QtCore.QVariant):
+            data = data.toPyObject()
+
+        if role in FileModel.STRING_ROLES:
+            data = value_to_str(data)
+
+        return data
 
     def destroy(self):
         """
@@ -1409,3 +1534,89 @@ class FileModel(QtGui.QStandardItemModel):
             painter.end()
 
         return thumb_base
+
+    # ------------------------------------------------------------------------------------------
+    # Override ViewItemMixin methods
+
+    def _get_args_for_role_method(self, item, role):
+        """
+        Override the :class:`ViewItemRolesMixin` method.
+
+        This method will be called before executing the method to retrieve the item
+        data for a given role.
+
+        Return any additional positional or keyword arguments to pass along to the
+        method executed for a role.staticmethod
+
+        :param item: The model item.
+        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
+        :param role: The item role.
+        :type role: :class:`sgtk.platform.qt.QtCore.Qt.ItemDataRole`
+
+        :return: Positional or keyword arguments to pass to a method executed to retreive
+                 item data for a role.
+        :rtype: tuple(list, dict)
+        """
+
+        is_group_item = item.data(self.NODE_TYPE_ROLE) == self.GROUP_NODE_TYPE
+
+        args = [item, item.data(self.FILE_ITEM_ROLE), is_group_item]
+
+        kwargs = {}
+
+        if is_group_item:
+            if role == FileModel.VIEW_ITEM_TITLE_ROLE:
+                work_area = item.data(FileModel.WORK_AREA_ROLE)
+                display_user = work_area and work_area.contains_user_sandboxes
+                if display_user:
+                    if work_area.context and work_area.context.user:
+                        if (
+                            g_user_cache.current_user
+                            and g_user_cache.current_user["id"]
+                            == work_area.context.user["id"]
+                        ):
+                            sandbox_user_name = "My"
+                        else:
+                            sandbox_user_name = "{name}'s".format(
+                                name=work_area.context.user.get("name", "Unknown")
+                            )
+                    else:
+                        sandbox_user_name = "Unknown's"
+                else:
+                    sandbox_user_name = ""
+
+                kwargs["sandbox_user_name"] = sandbox_user_name
+
+            if role == FileModel.VIEW_ITEM_SUBTITLE_ROLE:
+                # The group header subtitle will display the search status
+                work_area = item.data(FileModel.WORK_AREA_ROLE)
+                search_status = item.data(FileModel.SEARCH_STATUS_ROLE)
+
+                # The search status is retrieved here within the model, and then passed
+                # to the hook method which allows the search message to be formatted,
+                # appended to, or ommitted, as desired.
+                idx_has_children = self.hasChildren(item.index())
+                if search_status == FileModel.SEARCHING and not idx_has_children:
+                    search_msg = "Searching for files..."
+                elif (
+                    work_area
+                    and search_status == FileModel.SEARCH_COMPLETED
+                    and not idx_has_children
+                ):
+                    templates = work_area.get_missing_templates()
+                    if not work_area.are_settings_loaded():
+                        search_msg = "Shotgun Workfiles hasn't been setup."
+                    elif templates:
+                        search_msg = MissingTemplatesError.generate_missing_templates_message(
+                            templates
+                        )
+                    else:
+                        search_msg = "No files found."
+                elif search_status == FileModel.SEARCH_FAILED:
+                    search_msg = item.data(FileModel.SEARCH_MSG_ROLE)
+                else:
+                    search_msg = ""
+
+                kwargs["search_msg"] = search_msg
+
+        return (args, kwargs)
