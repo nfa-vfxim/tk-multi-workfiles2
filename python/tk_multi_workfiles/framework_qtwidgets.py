@@ -31,18 +31,11 @@ NavigationWidget = navigation.NavigationWidget
 BreadcrumbWidget = navigation.BreadcrumbWidget
 Breadcrumb = navigation.Breadcrumb
 
-# Spinner/busy widget:
-spinner_widget = sgtk.platform.import_framework(
-    "tk-framework-qtwidgets", "spinner_widget"
-)
-SpinnerWidget = spinner_widget.SpinnerWidget
-
 # Grouped list view, widget base class and delegates:
 views = sgtk.platform.import_framework("tk-framework-qtwidgets", "views")
-GroupedListView = views.GroupedListView
-GroupWidgetBase = views.GroupWidgetBase
-GroupedListViewItemDelegate = views.GroupedListViewItemDelegate
+# FIXME remove this once MyTaskItemDelegate is replaced with ViewItemDelegate
 WidgetDelegate = views.WidgetDelegate
+GroupedItemView = views.GroupedItemView
 
 # hierarchical filtering proxy model:
 models = sgtk.platform.import_framework("tk-framework-qtwidgets", "models")
@@ -51,3 +44,6 @@ HierarchicalFilteringProxyModel = models.HierarchicalFilteringProxyModel
 overlay_widget = sgtk.platform.import_framework(
     "tk-framework-qtwidgets", "overlay_widget"
 )
+
+delegates = sgtk.platform.import_framework("tk-framework-qtwidgets", "delegates")
+ViewItemDelegate = delegates.ViewItemDelegate

@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>675</width>
-    <height>632</height>
+    <width>961</width>
+    <height>863</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+  <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0">
    <property name="spacing">
     <number>4</number>
    </property>
@@ -30,17 +30,21 @@
     <number>2</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,1,0">
-     <property name="leftMargin">
-      <number>1</number>
-     </property>
-     <property name="rightMargin">
-      <number>1</number>
-     </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
      <item>
-      <widget class="UserFilterButton" name="user_filter_btn">
-       <property name="styleSheet">
-        <string notr="true">#user_filter_btn {
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0,1,0,0,0">
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="UserFilterButton" name="user_filter_btn">
+           <property name="styleSheet">
+            <string notr="true">#user_filter_btn {
 	width: 40;
 	height: 24;
 	border: 0px, none;
@@ -83,88 +87,168 @@
 	height: 6px;
 }
 </string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-       <property name="user_style" stdset="0">
-        <string>current</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="all_versions_cb">
-       <property name="text">
-        <string>All Versions</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="SearchWidget" name="search_ctrl" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="accessibleName">
-        <string>Search All Files</string>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">#search_ctrl {
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+           <property name="user_style" stdset="0">
+            <string>current</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="all_versions_cb">
+           <property name="text">
+            <string>All Versions</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QToolButton" name="thumbnail_mode">
+           <property name="minimumSize">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Thumbnail Mode</string>
+           </property>
+           <property name="accessibleName">
+            <string>thumbnail_mode</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="resources.qrc">
+             <normaloff>:/tk-multi-workfiles2/mode_switch_thumb_active.png</normaloff>:/tk-multi-workfiles2/mode_switch_thumb_active.png</iconset>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="list_mode">
+           <property name="minimumSize">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>List Mode</string>
+           </property>
+           <property name="accessibleName">
+            <string>list_mode</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="resources.qrc">
+             <normaloff>:/tk-multi-workfiles2/mode_switch_card.png</normaloff>:/tk-multi-workfiles2/mode_switch_card.png</iconset>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="SearchWidget" name="search_ctrl" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="accessibleName">
+            <string>Search All Files</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">#search_ctrl {
 background-color: rgb(255, 128, 0);
 }</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QStackedWidget" name="view_pages">
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="list_page">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <property name="margin">
-        <number>0</number>
-       </property>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
        <item>
-        <widget class="GroupedListView" name="file_list_view" native="true">
-         <property name="styleSheet">
-          <string notr="true"/>
+        <widget class="QStackedWidget" name="view_pages">
+         <property name="currentIndex">
+          <number>0</number>
          </property>
+         <widget class="QWidget" name="list_page">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="GroupedItemView" name="file_list_view" native="true">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="details_page">
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="FileDetailsView" name="file_details_view"/>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="details_page">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="FileDetailsView" name="file_details_view"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -181,15 +265,15 @@ background-color: rgb(255, 128, 0);
    <header>..file_list.file_details_view</header>
   </customwidget>
   <customwidget>
-   <class>GroupedListView</class>
-   <extends>QWidget</extends>
-   <header>..framework_qtwidgets</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>UserFilterButton</class>
    <extends>QPushButton</extends>
    <header>..file_list.user_filter_button</header>
+  </customwidget>
+  <customwidget>
+   <class>GroupedItemView</class>
+   <extends>QWidget</extends>
+   <header>..framework_qtwidgets</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
