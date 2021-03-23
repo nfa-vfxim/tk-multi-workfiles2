@@ -23,6 +23,8 @@ from .file_proxy_model import FileProxyModel
 from ..util import map_to_source, get_source_model
 from ..framework_qtwidgets import ViewItemDelegate
 
+settings = sgtk.platform.import_framework("tk-framework-shotgunutils", "settings")
+
 
 class FileListForm(QtGui.QWidget):
     """
@@ -47,7 +49,8 @@ class FileListForm(QtGui.QWidget):
         object, object, QtCore.QPoint
     )  # file, env, pos
 
-    (MAIN_VIEW_LIST, MAIN_VIEW_THUMB) = range(2)
+    # Settings keys
+    VIEW_MODE_SETTING = "view_mode"
 
     def __init__(
         self,
@@ -66,6 +69,12 @@ class FileListForm(QtGui.QWidget):
         :param parent:          The parent QWidget for this control
         """
         QtGui.QWidget.__init__(self, parent)
+
+        self._bundle = sgtk.platform.current_bundle()
+
+        # create a settings manager where we can pull and push prefs later
+        # prefs in this manager are shared
+        self._settings_manager = settings.UserSettings(self._bundle)
 
         # keep track of the file to select when/if it appears in the attached model
         self._file_to_select = None
@@ -108,25 +117,52 @@ class FileListForm(QtGui.QWidget):
             self._on_context_menu_requested
         )
 
-        # Note, we have to keep a handle to the item delegate to help GC
-        self._view_item_delegate = self._setup_view_item_delegate(
-            self._ui.file_list_view
-        )
         # we want to handle double-click on items but we only want double-clicks to work when using
         # the left mouse button.  To achieve this we connect to the doubleClicked slot but also install
         # an event filter that will swallow any non-left-mouse-button double-clicks.
         self._ui.file_list_view.doubleClicked.connect(self._on_item_double_clicked)
         self._ui.file_list_view.viewport().installEventFilter(self)
 
-        self._ui.thumbnail_mode.clicked.connect(
-            lambda: self._set_main_view_mode(self.MAIN_VIEW_THUMB)
+        # Note, we have to keep a handle to the item delegate to help GC
+        file_item_delegate = self._setup_view_item_delegate(self._ui.file_list_view)
+
+        # Set up the view modes
+        self.view_modes = [
+            {
+                "button": self._ui.thumbnail_mode,
+                "delegate": file_item_delegate,
+                "row_width": None,  # No width hint, the item width is determined by the item's data
+            },
+            {
+                "button": self._ui.list_mode,
+                "delegate": file_item_delegate,
+                "row_width": -1,  # Tell the delegate item widths should expand to the full viewport width
+            },
+        ]
+        for i, view_mode in enumerate(self.view_modes):
+            view_mode["button"].clicked.connect(
+                lambda checked=False, mode=i: self._set_view_mode(mode)
+            )
+
+        # Set up icons for view mode buttons
+        thumbnail_icon = QtGui.QIcon(":/tk-multi-workfiles2/mode_switch_thumb.png")
+        thumbnail_icon.addPixmap(
+            QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_thumb_active.png"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.On,
         )
-        self._ui.list_mode.clicked.connect(
-            lambda: self._set_main_view_mode(self.MAIN_VIEW_LIST)
+        self._ui.thumbnail_mode.setIcon(thumbnail_icon)
+
+        list_icon = QtGui.QIcon(":/tk-multi-workfiles2/mode_switch_card.png")
+        list_icon.addPixmap(
+            QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_card_active.png"),
+            QtGui.QIcon.Mode.Normal,
+            QtGui.QIcon.State.On,
         )
-        # Set the view mode
-        # TODO settings manager to remember the last view set
-        self._set_main_view_mode(self.MAIN_VIEW_THUMB)
+        self._ui.list_mode.setIcon(list_icon)
+
+        cur_view_mode = self._settings_manager.retrieve(self.VIEW_MODE_SETTING, 0)
+        self._set_view_mode(cur_view_mode)
 
     def _setup_view_item_delegate(self, view):
         """
@@ -148,7 +184,6 @@ class FileListForm(QtGui.QWidget):
         # Set any delegate style properties
         delegate.selection_brush = QtGui.QBrush(QtGui.QColor(0, 178, 236))
 
-        # TODO call hook for any additional actions
         # Create an icon for the expand header action
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
         expand_icon.addPixmap(
@@ -189,56 +224,34 @@ class FileListForm(QtGui.QWidget):
 
         return {"visible": visible, "state": state}
 
-    def _set_main_view_mode(self, mode):
+    def _set_view_mode(self, mode_index):
         """
-        Sets up the view mode for the main view.
+        Set the view mode for the main view.
 
-        :param mode: either MAIN_VIEW_LIST or MAIN_VIEW_THUMB
+        :param mode_index: The mode to set the view to.
+        :type mode_index: int
+
+        :return: None
         """
 
-        if mode == self.MAIN_VIEW_LIST:
-            self._ui.thumbnail_mode.setIcon(
-                QtGui.QIcon(
-                    QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_thumb.png")
-                )
-            )
-            self._ui.thumbnail_mode.setChecked(False)
-            self._ui.list_mode.setIcon(
-                QtGui.QIcon(
-                    QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_card_active.png")
-                )
-            )
-            self._ui.list_mode.setChecked(True)
+        assert 0 <= mode_index < len(self.view_modes), "Undefined view mode"
 
-            # Set the delegate row width to -1 so that it draws each item to the full viewport width
-            self._view_item_delegate.row_width = -1
-
-        elif mode == self.MAIN_VIEW_THUMB:
-            self._ui.list_mode.setIcon(
-                QtGui.QIcon(QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_card.png"))
-            )
-            self._ui.list_mode.setChecked(False)
-            self._ui.thumbnail_mode.setIcon(
-                QtGui.QIcon(
-                    QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_thumb_active.png")
-                )
-            )
-            self._ui.thumbnail_mode.setChecked(True)
-
-            # The item row width is determined by the item data role
-            self._view_item_delegate.row_width = None
-
-        else:
-            assert False, "Unknown view mode"
-
+        # Clear any selection on changing the view mode.
         if self._ui.file_list_view.selectionModel():
             self._ui.file_list_view.selectionModel().clear()
 
-        # TODO add settings manager
-        # self._settings_manager.store("main_view_mode", mode)
+        for i, view_mode in enumerate(self.view_modes):
+            is_cur_mode = i == mode_index
+            view_mode["button"].setChecked(is_cur_mode)
+            if is_cur_mode:
+                delegate = view_mode["delegate"]
+                delegate.row_width = view_mode.get("row_width")
+                self._ui.file_list_view.setItemDelegate(delegate)
 
         self._ui.file_list_view._update_all_item_info = True
         self._ui.file_list_view.viewport().update()
+
+        self._settings_manager.store(self.VIEW_MODE_SETTING, mode_index)
 
     def shut_down(self):
         """
@@ -270,10 +283,12 @@ class FileListForm(QtGui.QWidget):
 
             # detach and clean up the item delegate:
             self._ui.file_list_view.setItemDelegate(None)
-            if self._view_item_delegate:
-                self._view_item_delegate.setParent(None)
-                self._view_item_delegate.deleteLater()
-                self._view_item_delegate = None
+            for view_mode in self.view_modes:
+                delegate = view_mode.get("delegate")
+                if delegate:
+                    delegate.setParent(None)
+                    delegate.deleteLater()
+                    delegate = None
 
         finally:
             self.blockSignals(signals_blocked)
