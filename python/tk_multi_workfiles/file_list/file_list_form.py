@@ -132,12 +132,12 @@ class FileListForm(QtGui.QWidget):
             {
                 "button": self._ui.thumbnail_mode,
                 "delegate": file_item_delegate,
-                "row_width": None,  # No width hint, the item width is determined by the item's data
+                "width": None,  # No width hint, the item width is determined by the item's data
             },
             {
                 "button": self._ui.list_mode,
                 "delegate": file_item_delegate,
-                "row_width": -1,  # Tell the delegate item widths should expand to the full viewport width
+                "width": -1,  # Tell the delegate item widths should expand to the full viewport width
             },
         ]
         for i, view_mode in enumerate(self.view_modes):
@@ -164,7 +164,7 @@ class FileListForm(QtGui.QWidget):
 
         # Set up the item size slider
         scale_val = self._settings_manager.retrieve(self.ITEM_SIZE_SCALE_VALUE, 25)
-        file_item_delegate.row_height = scale_val
+        file_item_delegate.item_height = scale_val
         self._ui.item_size_slider.setValue(scale_val)
         self._ui.item_size_slider.valueChanged.connect(
             self._on_view_item_size_slider_change
@@ -198,7 +198,7 @@ class FileListForm(QtGui.QWidget):
         delegate.separator_role = FileModel.VIEW_ITEM_SEPARATOR_ROLE
 
         # Scale the thumbnail width according to the row height
-        delegate.scale_thumbnail_to_row_height(1.5)
+        delegate.scale_thumbnail_to_item_height(1.5)
 
         # Create an icon for the expand header action
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
@@ -705,7 +705,7 @@ class FileListForm(QtGui.QWidget):
             view_mode["button"].setChecked(is_cur_mode)
             if is_cur_mode:
                 delegate = view_mode["delegate"]
-                delegate.row_width = view_mode.get("row_width")
+                delegate.item_width = view_mode.get("width")
                 self._ui.file_list_view.setItemDelegate(delegate)
 
         self._ui.file_list_view._update_all_item_info = True
@@ -726,7 +726,7 @@ class FileListForm(QtGui.QWidget):
             if not delegate:
                 continue
             if isinstance(delegate, ViewItemDelegate):
-                delegate.row_height = value
+                delegate.item_height = value
 
         self._ui.file_list_view._update_all_item_info = True
         self._ui.file_list_view.viewport().update()

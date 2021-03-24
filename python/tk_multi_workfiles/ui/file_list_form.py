@@ -149,7 +149,7 @@ class Ui_FileListForm(object):
 " }\n"
 "")
         self.item_size_slider.setMinimum(35)
-        self.item_size_slider.setMaximum(300)
+        self.item_size_slider.setMaximum(200)
         self.item_size_slider.setOrientation(QtCore.Qt.Horizontal)
         self.item_size_slider.setObjectName("item_size_slider")
         self.horizontalLayout.addWidget(self.item_size_slider)

@@ -285,7 +285,7 @@ background-color: rgb(255, 128, 0);
             <number>35</number>
            </property>
            <property name="maximum">
-            <number>300</number>
+            <number>200</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
