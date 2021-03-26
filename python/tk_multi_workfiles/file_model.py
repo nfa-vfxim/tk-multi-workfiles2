@@ -431,7 +431,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
         # Add additional roles to the string roles list, ensure there are no duplicates.
         self.STRING_ROLES.extend(
             [
-                self.VIEW_ITEM_TITLE_ROLE,
+                self.VIEW_ITEM_HEADER_ROLE,
                 self.VIEW_ITEM_SUBTITLE_ROLE,
                 self.VIEW_ITEM_SHORT_TEXT_ROLE,
             ]
@@ -451,9 +451,9 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
         # (1) QStandardItem (2) dict
         self.role_methods = {
             self.VIEW_ITEM_THUMBNAIL_ROLE: view_item_config_hook.get_item_thumbnail,
-            self.VIEW_ITEM_TITLE_ROLE: view_item_config_hook.get_item_title,
+            self.VIEW_ITEM_HEADER_ROLE: view_item_config_hook.get_item_title,
             self.VIEW_ITEM_SUBTITLE_ROLE: view_item_config_hook.get_item_subtitle,
-            self.VIEW_ITEM_DETAILS_ROLE: view_item_config_hook.get_item_details,
+            self.VIEW_ITEM_TEXT_ROLE: view_item_config_hook.get_item_details,
             self.VIEW_ITEM_ICON_ROLE: view_item_config_hook.get_item_icons,
             self.VIEW_ITEM_WIDTH_ROLE: view_item_config_hook.get_item_width,
             self.VIEW_ITEM_SEPARATOR_ROLE: view_item_config_hook.get_item_separator,
@@ -1569,7 +1569,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
         kwargs = {}
 
         if is_group_item:
-            if role == FileModel.VIEW_ITEM_TITLE_ROLE:
+            if role == FileModel.VIEW_ITEM_HEADER_ROLE:
                 work_area = item.data(FileModel.WORK_AREA_ROLE)
                 display_user = work_area and work_area.contains_user_sandboxes
                 if display_user:

@@ -181,9 +181,9 @@ class FileListForm(QtGui.QWidget):
         delegate = ViewItemDelegate(view)
 
         # Set the item data roles used by the delegate to render an item.
-        delegate.title_role = FileModel.VIEW_ITEM_TITLE_ROLE
+        delegate.header_role = FileModel.VIEW_ITEM_HEADER_ROLE
         delegate.subtitle_role = FileModel.VIEW_ITEM_SUBTITLE_ROLE
-        delegate.details_role = FileModel.VIEW_ITEM_DETAILS_ROLE
+        delegate.text_role = FileModel.VIEW_ITEM_TEXT_ROLE
         # Set the role to display icons/badges over the thumbnail.
         delegate.icon_role = FileModel.VIEW_ITEM_ICON_ROLE
         # Set the role to expand and collapse an item row.
