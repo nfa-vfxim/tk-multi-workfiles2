@@ -200,6 +200,16 @@ class FileListForm(QtGui.QWidget):
         # Scale the thumbnail width according to the row height
         delegate.scale_thumbnail_to_item_height(1.5)
 
+        # delegate.item_padding = 10
+        delegate._item_x_radius = 0.0
+        delegate._item_y_radius = 0.0
+        delegate._thumbnail_x_radius = 0.0
+        delegate._thumbnail_y_radius = 0.0
+        # delegate.item_padding = 4
+        delegate.text_padding = ViewItemDelegate.Padding(2, 7, 5, 7)
+        delegate.text_document_margin = 0
+        delegate.button_margin = 0
+
         # Create an icon for the expand header action
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
         expand_icon.addPixmap(
@@ -213,6 +223,7 @@ class FileListForm(QtGui.QWidget):
                 {
                     "icon": expand_icon,
                     "show_always": True,
+                    "padding": 2,
                     "features": QtGui.QStyleOptionButton.Flat,
                     "get_data": self._get_expand_action_data,
                     "callback": lambda view, index, pos: view.toggle_expand(index),

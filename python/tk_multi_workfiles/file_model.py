@@ -198,6 +198,9 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
                 if isinstance(data, six.string_types):
                     data = QtGui.QPixmap(data)
 
+            # elif role == QtCore.Qt.BackgroundRole:
+            # data = QtGui.QApplication.palette().midlight()
+
             elif role == FileModel.FILE_ITEM_ROLE:
                 data = self._file_item
 
