@@ -203,31 +203,25 @@ class FileListForm(QtGui.QWidget):
             QtGui.QIcon.Mode.Normal,
             QtGui.QIcon.State.On,
         )
-        delegate.add_actions(
-            [
-                # Add an expand action for group header items
-                {
-                    "icon": expand_icon,
-                    "show_always": True,
-                    "padding": 2,
-                    "features": QtGui.QStyleOptionButton.Flat,
-                    "get_data": self._get_expand_action_data,
-                    "callback": lambda view, index, pos: view.toggle_expand(index),
-                },
-            ],
+        # Add an expand action for group header items
+        delegate.add_action(
+            {
+                "icon": expand_icon,
+                "show_always": True,
+                "padding": 2,
+                "features": QtGui.QStyleOptionButton.Flat,
+                "get_data": self._get_expand_action_data,
+                "callback": lambda view, index, pos: view.toggle_expand(index),
+            },
             ViewItemDelegate.LEFT,
         )
-        delegate.add_actions(
-            [
-                # Add a menu button for actions
-                {
-                    "icon": QtGui.QIcon(
-                        ":/tk-multi-workfiles2/tree_arrow_expanded.png"
-                    ),
-                    "padding": 0,
-                    "callback": self._actions_menu_requested,
-                },
-            ],
+        # Add a menu button for actions
+        delegate.add_action(
+            {
+                "icon": QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png"),
+                "padding": 0,
+                "callback": self._actions_menu_requested,
+            },
             ViewItemDelegate.TOP_RIGHT,
         )
 
