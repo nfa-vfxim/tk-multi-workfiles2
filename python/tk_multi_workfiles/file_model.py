@@ -198,8 +198,8 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
                 if isinstance(data, six.string_types):
                     data = QtGui.QPixmap(data)
 
-            # elif role == QtCore.Qt.BackgroundRole:
-            # data = QtGui.QApplication.palette().midlight()
+            elif role == QtCore.Qt.BackgroundRole:
+                data = QtGui.QApplication.palette().midlight()
 
             elif role == FileModel.FILE_ITEM_ROLE:
                 data = self._file_item
@@ -989,7 +989,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
                     self._published_file_type,
                     file_item.published_file_id,
                     "image",
-                    load_image=True,
+                    load_image=False,  # Avoid loading to QImage then convert to QPixmap
                 )
                 self._pending_thumbnail_requests[request_id] = (
                     group_item.key,
@@ -1352,8 +1352,18 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
 
         # extract the thumbnail path and QImage from the data/result
         thumb_path = data.get("thumb_path")
+        if not thumb_path:
+            return
+
         thumb_image = data.get("image")
-        if not thumb_path or not thumb_image:
+        if thumb_image:
+            # prepare a pixmap from the thumbnail image
+            thumb = self._build_thumbnail(thumb_image)
+        else:
+            # Create a pixmap directly from the thumbnail path
+            thumb = QtGui.QPixmap(thumb_path)
+
+        if not thumb:
             return
 
         # find all file items for this file:
@@ -1367,11 +1377,6 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             if group_item.key == group_key:
                 work_area = group_item.work_area
                 break
-
-        # prepare a pixmap from the thumbnail image:
-        thumb = self._build_thumbnail(thumb_image)
-        if not thumb:
-            return
 
         # update all files and items with this thumbnail:
         for model_item in model_items:
