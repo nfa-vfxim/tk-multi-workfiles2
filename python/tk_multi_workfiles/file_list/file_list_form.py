@@ -184,42 +184,29 @@ class FileListForm(QtGui.QWidget):
         delegate.header_role = FileModel.VIEW_ITEM_HEADER_ROLE
         delegate.subtitle_role = FileModel.VIEW_ITEM_SUBTITLE_ROLE
         delegate.text_role = FileModel.VIEW_ITEM_TEXT_ROLE
-        # Set the role to display icons/badges over the thumbnail.
         delegate.icon_role = FileModel.VIEW_ITEM_ICON_ROLE
-        # Set the role to expand and collapse an item row.
         delegate.expand_role = FileModel.VIEW_ITEM_EXPAND_ROLE
-        # Set the role to provide a width hint.
         delegate.width_role = FileModel.VIEW_ITEM_WIDTH_ROLE
-        # Set the role to provide a height hint.
         delegate.height_role = FileModel.VIEW_ITEM_HEIGHT_ROLE
-        # Set the role to provide a loading status.
         delegate.loading_role = FileModel.VIEW_ITEM_LOADING_ROLE
-        # Set the role to indicate whether or not the item has a separator.
         delegate.separator_role = FileModel.VIEW_ITEM_SEPARATOR_ROLE
 
-        # Scale the thumbnail width according to the row height
+        # Set up delegate styling (e.g. margins, padding, etc.)
+        delegate.button_margin = 0
+        delegate.text_padding = ViewItemDelegate.Padding(2, 7, 5, 7)
+        delegate.thumbnail_padding = ViewItemDelegate.Padding(7, 0, 7, 7)
         delegate.scale_thumbnail_to_item_height(1.5)
 
-        # delegate.item_padding = 10
-        delegate._item_x_radius = 0.0
-        delegate._item_y_radius = 0.0
-        delegate._thumbnail_x_radius = 0.0
-        delegate._thumbnail_y_radius = 0.0
-        # delegate.item_padding = 4
-        delegate.text_padding = ViewItemDelegate.Padding(2, 7, 5, 7)
-        delegate.text_document_margin = 0
-        delegate.button_margin = 0
-
-        # Create an icon for the expand header action
+        # Set up actions
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
         expand_icon.addPixmap(
             QtGui.QPixmap(":/tk-multi-workfiles2/tree_arrow_collapsed.png"),
             QtGui.QIcon.Mode.Normal,
             QtGui.QIcon.State.On,
         )
-        # Add an expand action for group header items
         delegate.add_actions(
             [
+                # Add an expand action for group header items
                 {
                     "icon": expand_icon,
                     "show_always": True,
@@ -234,8 +221,8 @@ class FileListForm(QtGui.QWidget):
 
         # Enable mouse tracking for the delegate to receive mouse events
         view.setMouseTracking(True)
-
         view.setItemDelegate(delegate)
+
         return delegate
 
     def shut_down(self):
@@ -733,11 +720,8 @@ class FileListForm(QtGui.QWidget):
         """
 
         for view_mode in self.view_modes:
-            delegate = view_mode["delegate"]
-            if not delegate:
-                continue
-            if isinstance(delegate, ViewItemDelegate):
-                delegate.item_height = value
+            if isinstance(view_mode.get("delegate"), ViewItemDelegate):
+                view_mode["delegate"].item_height = value
 
         self._ui.file_list_view._update_all_item_info = True
         self._ui.file_list_view.viewport().update()
