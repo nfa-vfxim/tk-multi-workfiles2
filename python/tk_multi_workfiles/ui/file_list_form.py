@@ -79,9 +79,6 @@ class Ui_FileListForm(object):
         self.thumbnail_mode = QtGui.QToolButton(FileListForm)
         self.thumbnail_mode.setMinimumSize(QtCore.QSize(26, 26))
         self.thumbnail_mode.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_thumb_active.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.thumbnail_mode.setIcon(icon)
         self.thumbnail_mode.setCheckable(True)
         self.thumbnail_mode.setChecked(False)
         self.thumbnail_mode.setObjectName("thumbnail_mode")
@@ -89,9 +86,6 @@ class Ui_FileListForm(object):
         self.list_mode = QtGui.QToolButton(FileListForm)
         self.list_mode.setMinimumSize(QtCore.QSize(26, 26))
         self.list_mode.setText("")
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/tk-multi-workfiles2/mode_switch_card.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.list_mode.setIcon(icon1)
         self.list_mode.setCheckable(True)
         self.list_mode.setChecked(True)
         self.list_mode.setObjectName("list_mode")
@@ -148,7 +142,7 @@ class Ui_FileListForm(object):
 "     border-radius: 3px;\n"
 " }\n"
 "")
-        self.item_size_slider.setMinimum(35)
+        self.item_size_slider.setMinimum(20)
         self.item_size_slider.setMaximum(200)
         self.item_size_slider.setOrientation(QtCore.Qt.Horizontal)
         self.item_size_slider.setObjectName("item_size_slider")

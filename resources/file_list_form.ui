@@ -136,10 +136,6 @@
            <property name="text">
             <string/>
            </property>
-           <property name="icon">
-            <iconset resource="resources.qrc">
-             <normaloff>:/tk-multi-workfiles2/mode_switch_thumb_active.png</normaloff>:/tk-multi-workfiles2/mode_switch_thumb_active.png</iconset>
-           </property>
            <property name="checkable">
             <bool>true</bool>
            </property>
@@ -164,10 +160,6 @@
            </property>
            <property name="text">
             <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="resources.qrc">
-             <normaloff>:/tk-multi-workfiles2/mode_switch_card.png</normaloff>:/tk-multi-workfiles2/mode_switch_card.png</iconset>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -282,7 +274,7 @@ background-color: rgb(255, 128, 0);
 </string>
            </property>
            <property name="minimum">
-            <number>35</number>
+            <number>20</number>
            </property>
            <property name="maximum">
             <number>200</number>
@@ -302,6 +294,12 @@ background-color: rgb(255, 128, 0);
  </widget>
  <customwidgets>
   <customwidget>
+   <class>GroupedItemView</class>
+   <extends>QWidget</extends>
+   <header>..framework_qtwidgets</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>SearchWidget</class>
    <extends>QWidget</extends>
    <header>..framework_qtwidgets</header>
@@ -316,12 +314,6 @@ background-color: rgb(255, 128, 0);
    <class>UserFilterButton</class>
    <extends>QPushButton</extends>
    <header>..file_list.user_filter_button</header>
-  </customwidget>
-  <customwidget>
-   <class>GroupedItemView</class>
-   <extends>QWidget</extends>
-   <header>..framework_qtwidgets</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
