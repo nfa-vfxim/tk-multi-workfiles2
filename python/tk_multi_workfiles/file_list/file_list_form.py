@@ -192,7 +192,7 @@ class FileListForm(QtGui.QWidget):
         delegate.separator_role = FileModel.VIEW_ITEM_SEPARATOR_ROLE
 
         # Set up delegate styling (e.g. margins, padding, etc.)
-        delegate.button_margin = 0
+        delegate.button_margin = 7
         delegate.text_padding = ViewItemDelegate.Padding(2, 7, 5, 7)
         delegate.thumbnail_padding = ViewItemDelegate.Padding(7, 0, 7, 7)
         delegate.scale_thumbnail_to_item_height(1.5)
@@ -217,6 +217,19 @@ class FileListForm(QtGui.QWidget):
                 },
             ],
             ViewItemDelegate.LEFT,
+        )
+        delegate.add_actions(
+            [
+                # Add a menu button for actions
+                {
+                    "icon": QtGui.QIcon(
+                        ":/tk-multi-workfiles2/tree_arrow_expanded.png"
+                    ),
+                    "padding": 0,
+                    "callback": self._actions_menu_requested,
+                },
+            ],
+            ViewItemDelegate.TOP_RIGHT,
         )
 
         # Enable mouse tracking for the delegate to receive mouse events
@@ -522,19 +535,30 @@ class FileListForm(QtGui.QWidget):
         """
         # get the item under the point:
         idx = self._ui.file_list_view.indexAt(pnt)
-        if not idx or not idx.isValid():
+        self._show_context_menu(self.sender(), idx, pnt)
+
+    def _show_context_menu(self, widget, index, pos):
+        """
+        Slot triggered when a context menu has been requested from one of the file views.  This
+        will collect information about the item under the cursor and emit a file_context_menu_requested
+        signal.
+
+        :param pos: The position for the context menu relative to the source widget
+        """
+
+        if not index or not index.isValid():
             return
 
         # get the file from the index:
-        file_item = idx.data(FileModel.FILE_ITEM_ROLE)
+        file_item = index.data(FileModel.FILE_ITEM_ROLE)
         if not file_item:
             return
 
         # ...and the env details:
-        env_details = idx.data(FileModel.WORK_AREA_ROLE)
+        env_details = index.data(FileModel.WORK_AREA_ROLE)
 
         # remap the point from the source widget:
-        pnt = self.sender().mapTo(self, pnt)
+        pnt = widget.mapTo(self, pos)
 
         # emit a more specific signal:
         self.file_context_menu_requested.emit(file_item, env_details, pnt)
@@ -756,3 +780,26 @@ class FileListForm(QtGui.QWidget):
             state |= QtGui.QStyle.State_On
 
         return {"visible": visible, "state": state}
+
+    def _actions_menu_requested(self, view, index, pos):
+        """
+        Callback triggered when a view item's action menu is requested to be shown.
+        This will clear and select the given index, and show the item's actions menu.
+
+        :param view: The view the item belongs to.
+        :type view: :class:`GroupItemView`
+        :param index: The index of the item.
+        :type index: :class:`sgtk.platform.qt.QtCore.QModelIndex`
+        :param pos: The position that the menu should be displayed at.
+        :type pos: :class:`sgtk.platform.qt.QtCore.QPoint`
+
+        :return: None
+        """
+
+        selection_model = view.selectionModel()
+        if selection_model:
+            view.selectionModel().select(
+                index, QtGui.QItemSelectionModel.ClearAndSelect
+            )
+
+        self._show_context_menu(view, index, pos)
