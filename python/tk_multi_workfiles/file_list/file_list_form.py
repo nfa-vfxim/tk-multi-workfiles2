@@ -164,11 +164,10 @@ class FileListForm(QtGui.QWidget):
 
         # Set up the item size slider
         scale_val = self._settings_manager.retrieve(self.ITEM_SIZE_SCALE_VALUE, 25)
-        file_item_delegate.item_height = scale_val
-        self._ui.item_size_slider.setValue(scale_val)
         self._ui.item_size_slider.valueChanged.connect(
             self._on_view_item_size_slider_change
         )
+        self._ui.item_size_slider.setValue(scale_val)
 
         cur_view_mode = self._settings_manager.retrieve(self.VIEW_MODE_SETTING, 0)
         self._set_view_mode(cur_view_mode)
@@ -527,22 +526,22 @@ class FileListForm(QtGui.QWidget):
 
     def _on_context_menu_requested(self, pnt):
         """
-        Slot triggered when a context menu has been requested from one of the file views.  This
-        will collect information about the item under the cursor and emit a file_context_menu_requested
-        signal.
+        Slot triggered when a context menu has been requested from one of the file views. This will
+        call the method to show the context menu at the given position.
 
         :param pnt: The position for the context menu relative to the source widget
         """
-        # get the item under the point:
+
         idx = self._ui.file_list_view.indexAt(pnt)
         self._show_context_menu(self.sender(), idx, pnt)
 
     def _show_context_menu(self, widget, index, pos):
         """
-        Slot triggered when a context menu has been requested from one of the file views.  This
-        will collect information about the item under the cursor and emit a file_context_menu_requested
-        signal.
+        Show a context menu for the index at the given position. This will collect information about
+        the index and emit a file_context_menu_requested signal.
 
+        :param widget: The source widge (e.g. the view the index belongs to)
+        :param index: The index to display the menu for.
         :param pos: The position for the context menu relative to the source widget
         """
 
