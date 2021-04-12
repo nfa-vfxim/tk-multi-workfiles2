@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk, Inc.
 
-
 from datetime import datetime, timedelta
 
 import sgtk
@@ -37,19 +36,12 @@ class ViewItemConfiguration(HookClass):
         {"attr": "modified_at", "default": "<i>Unknown</i>"},
     ]
 
-    def get_item_thumbnail(self, item, file_item, is_header, extra_data):
+    def get_item_thumbnail(self, item):
         """
         Returns the data to display for this model index item's thumbnail.
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The item thumbnail.
         :rtype: :class:`sgtk.platform.qt.QtGui.QPixmap`
@@ -57,7 +49,7 @@ class ViewItemConfiguration(HookClass):
 
         return item.data(QtCore.Qt.DecorationRole)
 
-    def get_item_title(self, item, file_item, is_header, extra_data):
+    def get_item_title(self, item):
         """
         Returns the data to display for this model index item's title.
 
@@ -67,29 +59,21 @@ class ViewItemConfiguration(HookClass):
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The title for this item.
         :rtype: string
         """
 
-        extra_data = extra_data or {}
-
+        file_item = item.data(item.model().FILE_ITEM_ROLE)
         if file_item:
-            return "<b>{}</b>".format(item.file_item.name)
+            return "<b>{}</b>".format(file_item.name)
 
-        if is_header:
+        if is_header(item):
             title_str = "<span style='font: 14px'>{} </span>".format(
                 item.data(QtCore.Qt.DisplayRole)
             )
 
-            sandbox_user_name = extra_data.get("sandbox_user_name")
+            sandbox_user_name = item.data(item.model().GROUP_SANDBOX_USER)
             if sandbox_user_name:
                 user_str = (
                     "<span style='font: 10px; color: rgb(0, 178, 236);'> (%s Files)</span>"
@@ -103,7 +87,7 @@ class ViewItemConfiguration(HookClass):
         # Default title
         return "<b>{}</b>".format(item.data(QtCore.Qt.DisplayRole))
 
-    def get_item_subtitle(self, item, file_item, is_header, extra_data):
+    def get_item_subtitle(self, item):
         """
         Returns the data to display for this model index item's subtitle.
 
@@ -112,22 +96,13 @@ class ViewItemConfiguration(HookClass):
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The subtitle for this item.
         :rtype: string
         """
 
-        extra_data = extra_data or {}
-
-        if is_header:
-            search_msg = extra_data.get("search_msg")
+        if is_header(item):
+            search_msg = item.data(item.model().SEARCH_MSG_ROLE)
             if search_msg:
                 return "<span style='font: 11px; color: grey;'>{}</span>".format(
                     search_msg
@@ -135,19 +110,12 @@ class ViewItemConfiguration(HookClass):
 
         return None
 
-    def get_item_details(self, item, file_item, is_header, extra_data):
+    def get_item_details(self, item):
         """
         Returns the details data to display for this model index item.
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The details for this item.
         :rtype: list<str>
@@ -155,20 +123,21 @@ class ViewItemConfiguration(HookClass):
 
         details = []
 
+        file_item = item.data(item.model().FILE_ITEM_ROLE)
         if file_item:
             # Get the detail item descriptor based on whether the item is a published.
             # or local workfile
             detail_items = (
                 self.PUBLISHED_FILE_DETAILS
-                if item.file_item.is_published
+                if file_item.is_published
                 else self.WORK_FILE_DETAILS
             )
 
             # Extract the details from the item based on the details descriptor.
             for detail_item in detail_items:
-                if hasattr(item.file_item, detail_item["attr"]):
+                if hasattr(file_item, detail_item["attr"]):
                     detail_value = getattr(
-                        item.file_item, detail_item["attr"]
+                        file_item, detail_item["attr"]
                     ) or detail_item.get("default")
                     value = display_value(detail_value, detail_item.get("field"))
 
@@ -182,19 +151,12 @@ class ViewItemConfiguration(HookClass):
 
         return details
 
-    def get_item_icons(self, item, file_item, is_header, extra_data):
+    def get_item_icons(self, item):
         """
         Returns the icon data to display for this model index item.
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The icon data to display.
         :rtype: dict, for e.g.:
@@ -208,45 +170,39 @@ class ViewItemConfiguration(HookClass):
 
         result = {}
 
+        file_item = item.data(item.model().FILE_ITEM_ROLE)
         if file_item:
-            if not item.file_item.editable:
+            if not file_item.editable:
                 result["float-top-right"] = QtGui.QPixmap(
                     ":/tk-multi-workfiles2/padlock.png"
                 )
 
-            if item.file_item.is_published:
+            if file_item.is_published:
                 result["float-bottom-right"] = QtGui.QPixmap(
                     ":/tk-multi-workfiles2/publish_icon.png"
                 )
 
-            if item.file_item.badge:
-                result["float-bottom-left"] = item.file_item.badge
+            if file_item.badge:
+                result["float-bottom-left"] = file_item.badge
 
         return result
 
-    def get_item_separator(self, item, file_item, is_header, extra_data):
+    def get_item_separator(self, item):
         """
         Returns True to indicate the item has a separator, else False. This may be
         used to indicate to the delegate to draw a line separator for the item or not.
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: True to indicate the item has a separator, else False.
         :rtype: bool
         """
 
         # Only group headers have a separator.
-        return is_header
+        return is_header(item)
 
-    def get_item_width(self, item, file_item, is_header, extra_data):
+    def get_item_width(self, item):
         """
         Returns the width for this item. This may be used by the delegate to help
         draw the item as desired. NOTE: if the ViewItemDelegate has a fixed width
@@ -254,13 +210,6 @@ class ViewItemConfiguration(HookClass):
 
         :param item: The model item.
         :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
-        :param file_item: The FileItem associated with the item. This will be None
-                          for non :class:`FilepModelItem` items.
-        :type file_item: :class:`FileItem`
-        :param is_header: True if this is a group header item.
-        :type is_header: bool
-        :param extra_data: Extra data for the item.
-        :type extra_data: dict
 
         :return: The item rect display width
         :rtype: int
@@ -268,12 +217,32 @@ class ViewItemConfiguration(HookClass):
 
         # Set the width to 300 for non-header items and set to -1 for header items to
         # expand to the full available width.
-        return -1 if is_header else 300
+        return -1 if is_header(item) else 290
+
+
+def is_header(item):
+    """
+    Helper method to check if an item is a group header.
+
+    :param item: The model item.
+    :type item: :class:`FileModelItem` | :class:`GroupModelItem` | :class:`FolderModelItem`
+
+    :return: True if the item is a group header item, else False.
+    :rtype: bool
+    """
+
+    node_type = item.data(item.model().NODE_TYPE_ROLE)
+    return node_type == item.model().GROUP_NODE_TYPE
 
 
 def display_value(raw_value, dict_field=None):
     """
     Helper method to display user friendly values.
+
+    :param raw_value: The value to format and display.
+    :param dict_field: A key to extract the data from, for values of type dict.
+
+    :return: The processed value to display.
     """
 
     if isinstance(raw_value, datetime):

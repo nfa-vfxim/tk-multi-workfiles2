@@ -82,8 +82,9 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
         WORK_AREA_ROLE,  # WorkArea data
         SEARCH_STATUS_ROLE,  # search status data
         SEARCH_MSG_ROLE,  # search message data
+        GROUP_SANDBOX_USER,  # the sandbox user name
         NEXT_AVAILABLE_ROLE,  # Keep track of the next available custome role. Insert new roles above.
-    ) = range(_BASE_ROLE, _BASE_ROLE + 6)
+    ) = range(_BASE_ROLE, _BASE_ROLE + 7)
 
     # The list of roles which return a string value. This is used in the data method to ensure string data is santized.
     # This must be called after the ViewItemRolesMixin initializes its own roles.
@@ -121,8 +122,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
 
             if data_method:
                 try:
-                    (args, kwargs) = self.model()._get_args_for_role_method(self, role)
-                    return data_method(*args, extra_data=kwargs)
+                    return data_method(self)
                 except TypeError as error:
                     raise sgtk.TankError(
                         "Failed to execute the method defined to retrieve item data for role `{role}`.\nError: {msg}".format(
@@ -290,6 +290,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             self._search_msg = ""
             self._key = key
             self._work_area = work_area
+            self._sandbox_user_name = ""
 
         @property
         def key(self):
@@ -303,7 +304,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             """
             :returns:   The WorkArea instance associated with this item
             """
-            return self._work_area
+            return self.data(FileModel.WORK_AREA_ROLE)
 
         # @work_area.setter
         def _set_work_area(self, work_area):
@@ -312,8 +313,7 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
 
             :param work_area:   The WorkArea to associate with this item
             """
-            self._work_area = work_area
-            self.emitDataChanged()
+            self.setData(work_area, FileModel.WORK_AREA_ROLE)
 
         work_area = property(_get_work_area, _set_work_area)
 
@@ -324,9 +324,15 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             :param status:  The search status (see the search status enumeration above) to update this item with
             :param msg:     The status message if any to update this item with
             """
-            self._search_status = status
-            self._search_msg = msg
-            self.emitDataChanged()
+
+            if msg is None:
+                # The set data method will take care of setting the search message.
+                self.setData(status, FileModel.SEARCH_STATUS_ROLE)
+            else:
+                # Manually set the search status, message and emit data changed signal.
+                self._search_status = status
+                self._search_msg = msg
+                self.emitDataChanged()
 
         def data(self, role):
             """
@@ -344,6 +350,9 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
 
             elif role == FileModel.WORK_AREA_ROLE:
                 data = self._work_area
+
+            elif role == FileModel.GROUP_SANDBOX_USER:
+                data = self._sandbox_user_name
 
             elif role == FileModel.VIEW_ITEM_HEIGHT_ROLE:
                 # Group item height always adjusts to content size
@@ -367,15 +376,63 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             :param value:   The value to set the data with
             :param role:    The role to set the data for
             """
+
             if role == FileModel.SEARCH_STATUS_ROLE:
                 self._search_status = value
+
+                msg = ""
+
+                if self._search_status == FileModel.SEARCHING:
+                    msg = "Searching for files..."
+
+                elif self._search_status == FileModel.SEARCH_COMPLETED:
+                    if not self.hasChildren():
+                        work_area = self.data(FileModel.WORK_AREA_ROLE)
+                        if work_area:
+                            templates = work_area.get_missing_templates()
+                            if not work_area.are_settings_loaded():
+                                msg = "Shotgun Workfiles hasn't been setup."
+                            elif templates:
+                                msg = MissingTemplatesError.generate_missing_templates_message(
+                                    templates
+                                )
+                            else:
+                                msg = "No files found."
+
+                elif self._search_status == FileModel.SEARCH_FAILED:
+                    msg = "Search Failed"
+
+                self._search_msg = msg
                 self.emitDataChanged()
+
             elif role == FileModel.SEARCH_MSG_ROLE:
                 self._search_msg = value
                 self.emitDataChanged()
+
             elif role == FileModel.WORK_AREA_ROLE:
                 self._work_area = value
+
+                sandbox_user_name = ""
+                if self._work_area and self._work_area.contains_user_sandboxes:
+                    context = self._work_area.context
+                    if context and context.user:
+                        if (
+                            g_user_cache.current_user
+                            and g_user_cache.current_user["id"] == context.user["id"]
+                        ):
+                            sandbox_user_name = "My"
+                        else:
+                            sandbox_user_name = "{name}'s".format(
+                                name=context.user.get("name", "Unknown")
+                            )
+                    else:
+                        sandbox_user_name = "Unknown's"
+                else:
+                    sandbox_user_name = ""
+
+                self._sandbox_user_name = sandbox_user_name
                 self.emitDataChanged()
+
             else:
                 # call the base implementation:
                 FileModel._BaseModelItem.setData(self, value, role)
@@ -1546,89 +1603,3 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             painter.end()
 
         return thumb_base
-
-    # ------------------------------------------------------------------------------------------
-    # Override ViewItemMixin methods
-
-    def _get_args_for_role_method(self, item, role):
-        """
-        Override the :class:`ViewItemRolesMixin` method.
-
-        This method will be called before executing the method to retrieve the item
-        data for a given role.
-
-        Return any additional positional or keyword arguments to pass along to the
-        method executed for a role.staticmethod
-
-        :param item: The model item.
-        :type item: :class:`sgtk.platform.qt.QtGui.QStandardItem`
-        :param role: The item role.
-        :type role: :class:`sgtk.platform.qt.QtCore.Qt.ItemDataRole`
-
-        :return: Positional or keyword arguments to pass to a method executed to retreive
-                 item data for a role.
-        :rtype: tuple(list, dict)
-        """
-
-        is_group_item = item.data(self.NODE_TYPE_ROLE) == self.GROUP_NODE_TYPE
-
-        args = [item, item.data(self.FILE_ITEM_ROLE), is_group_item]
-
-        kwargs = {}
-
-        if is_group_item:
-            if role == FileModel.VIEW_ITEM_HEADER_ROLE:
-                work_area = item.data(FileModel.WORK_AREA_ROLE)
-                display_user = work_area and work_area.contains_user_sandboxes
-                if display_user:
-                    if work_area.context and work_area.context.user:
-                        if (
-                            g_user_cache.current_user
-                            and g_user_cache.current_user["id"]
-                            == work_area.context.user["id"]
-                        ):
-                            sandbox_user_name = "My"
-                        else:
-                            sandbox_user_name = "{name}'s".format(
-                                name=work_area.context.user.get("name", "Unknown")
-                            )
-                    else:
-                        sandbox_user_name = "Unknown's"
-                else:
-                    sandbox_user_name = ""
-
-                kwargs["sandbox_user_name"] = sandbox_user_name
-
-            if role == FileModel.VIEW_ITEM_SUBTITLE_ROLE:
-                # The group header subtitle will display the search status
-                work_area = item.data(FileModel.WORK_AREA_ROLE)
-                search_status = item.data(FileModel.SEARCH_STATUS_ROLE)
-
-                # The search status is retrieved here within the model, and then passed
-                # to the hook method which allows the search message to be formatted,
-                # appended to, or ommitted, as desired.
-                idx_has_children = self.hasChildren(item.index())
-                if search_status == FileModel.SEARCHING and not idx_has_children:
-                    search_msg = "Searching for files..."
-                elif (
-                    work_area
-                    and search_status == FileModel.SEARCH_COMPLETED
-                    and not idx_has_children
-                ):
-                    templates = work_area.get_missing_templates()
-                    if not work_area.are_settings_loaded():
-                        search_msg = "Shotgun Workfiles hasn't been setup."
-                    elif templates:
-                        search_msg = MissingTemplatesError.generate_missing_templates_message(
-                            templates
-                        )
-                    else:
-                        search_msg = "No files found."
-                elif search_status == FileModel.SEARCH_FAILED:
-                    search_msg = item.data(FileModel.SEARCH_MSG_ROLE)
-                else:
-                    search_msg = ""
-
-                kwargs["search_msg"] = search_msg
-
-        return (args, kwargs)
