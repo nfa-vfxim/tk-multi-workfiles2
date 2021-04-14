@@ -694,13 +694,19 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
         parent_item = parent_item or self.invisibleRootItem()
 
         # get the item and safey remove all children of the item:
-        item = parent_item.child(row)
-        if not item:
-            return
-        self._clear_children_r(item)
+        # item = parent_item.child(row)
+        # if not item:
+        #     return
+        # self._clear_children_r(item)
 
-        # and remove the row:
-        parent_item.removeRow(row)
+        # # and remove the row:
+        # parent_item.removeRow(row)
+
+        # Remove all children from parent, can cause the parent item to be deleted causing a C++
+        # internal object already deleted RuntimeError when then trying to call `removeRow` after
+        # clearing all children.
+        if parent_item.hasChildren():
+            parent_item.removeRow(row)
 
     def _clear_children_r(self, parent_item):
         """
