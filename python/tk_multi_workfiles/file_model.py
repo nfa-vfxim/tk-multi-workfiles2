@@ -389,15 +389,16 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
                     if not self.hasChildren():
                         work_area = self.data(FileModel.WORK_AREA_ROLE)
                         if work_area:
-                            templates = work_area.get_missing_templates()
                             if not work_area.are_settings_loaded():
                                 msg = "Shotgun Workfiles hasn't been setup."
-                            elif templates:
-                                msg = MissingTemplatesError.generate_missing_templates_message(
-                                    templates
-                                )
                             else:
-                                msg = "No files found."
+                                templates = work_area.get_missing_templates()
+                                if templates:
+                                    msg = MissingTemplatesError.generate_missing_templates_message(
+                                        templates
+                                    )
+                                else:
+                                    msg = "No files found."
 
                 elif self._search_status == FileModel.SEARCH_FAILED:
                     msg = "Search Failed"
