@@ -196,6 +196,8 @@ class FileListForm(QtGui.QWidget):
         delegate.thumbnail_padding = ViewItemDelegate.Padding(7, 0, 7, 7)
         delegate.scale_thumbnail_to_item_height(1.5)
 
+        delegate.loading_brush = QtCore.Qt.NoBrush
+
         # Set up actions
         expand_icon = QtGui.QIcon(":/tk-multi-workfiles2/tree_arrow_expanded.png")
         expand_icon.addPixmap(
