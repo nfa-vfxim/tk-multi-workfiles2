@@ -126,22 +126,13 @@ class Ui_FileListForm(object):
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.item_size_slider = QtGui.QSlider(FileListForm)
-        self.item_size_slider.setStyleSheet("QSlider::groove:horizontal {\n"
-"     /*border: 1px solid #999999; */\n"
-"     height: 2px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */\n"
-"     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3F3F3F, stop:1 #545454);\n"
-"     margin: 2px 0;\n"
-"     border-radius: 1px;\n"
-" }\n"
-"\n"
-" QSlider::handle:horizontal {\n"
-"     background: #545454;\n"
-"     border: 1px solid #B6B6B6;\n"
-"     width: 5px;\n"
-"     margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */\n"
+        self.item_size_slider.setMinimumSize(QtCore.QSize(150, 0))
+        self.item_size_slider.setMaximumSize(QtCore.QSize(150, 16777215))
+        self.item_size_slider.setStyleSheet(" QSlider::handle:horizontal {\n"
 "     border-radius: 3px;\n"
-" }\n"
-"")
+"     width: 4px;\n"
+"     background: palette(light);\n"
+" }")
         self.item_size_slider.setMinimum(20)
         self.item_size_slider.setMaximum(200)
         self.item_size_slider.setOrientation(QtCore.Qt.Horizontal)

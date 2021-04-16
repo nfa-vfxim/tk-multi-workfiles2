@@ -255,23 +255,24 @@ background-color: rgb(255, 128, 0);
          </item>
          <item>
           <widget class="QSlider" name="item_size_slider">
+           <property name="minimumSize">
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="styleSheet">
-            <string notr="true">QSlider::groove:horizontal {
-     /*border: 1px solid #999999; */
-     height: 2px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3F3F3F, stop:1 #545454);
-     margin: 2px 0;
-     border-radius: 1px;
- }
-
- QSlider::handle:horizontal {
-     background: #545454;
-     border: 1px solid #B6B6B6;
-     width: 5px;
-     margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+            <string notr="true"> QSlider::handle:horizontal {
      border-radius: 3px;
- }
-</string>
+     width: 4px;
+     background: palette(light);
+ }</string>
            </property>
            <property name="minimum">
             <number>20</number>
