@@ -269,6 +269,7 @@ background-color: rgb(255, 128, 0);
            </property>
            <property name="styleSheet">
             <string notr="true"> QSlider::handle:horizontal {
+	border: 1px solid palette(base);
      border-radius: 3px;
      width: 4px;
      background: palette(light);

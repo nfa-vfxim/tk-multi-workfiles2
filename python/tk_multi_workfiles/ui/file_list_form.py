@@ -129,6 +129,7 @@ class Ui_FileListForm(object):
         self.item_size_slider.setMinimumSize(QtCore.QSize(150, 0))
         self.item_size_slider.setMaximumSize(QtCore.QSize(150, 16777215))
         self.item_size_slider.setStyleSheet(" QSlider::handle:horizontal {\n"
+"    border: 1px solid palette(base);\n"
 "     border-radius: 3px;\n"
 "     width: 4px;\n"
 "     background: palette(light);\n"

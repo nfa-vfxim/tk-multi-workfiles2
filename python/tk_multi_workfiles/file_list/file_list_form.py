@@ -353,7 +353,8 @@ class FileListForm(QtGui.QWidget):
                 "There are no %ssandboxes available for this context." % sandbox_type
             )
 
-        self._ui.user_filter_btn.setEnabled(is_enabled)
+        self._ui.user_filter_btn.setEnabled(True)
+        # self._ui.user_filter_btn.setEnabled(is_enabled)
 
     def select_file(self, file_item, context):
         """
