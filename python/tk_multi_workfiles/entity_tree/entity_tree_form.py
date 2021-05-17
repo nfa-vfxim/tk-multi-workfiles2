@@ -27,6 +27,13 @@ from ..util import (
 )
 from ..util import get_sg_entity_name_field
 from ..entity_models import ShotgunDeferredEntityModel
+from ..framework_qtwidgets import (
+    FilterItem,
+    FilterMenu,
+    FilterMenuButton,
+    ShotgunFilterMenu,
+    TreeProxyModel,
+)
 
 shotgun_globals = sgtk.platform.import_framework(
     "tk-framework-shotgunutils", "shotgun_globals"
@@ -104,8 +111,8 @@ class EntityTreeForm(QtGui.QWidget):
         self._selected_item_value = []
 
         # load the setting that states whether the first level of the tree should be auto expanded
-        app = sgtk.platform.current_bundle()
-        self._auto_expand_tree = app.get_setting("auto_expand_tree")
+        self._app = sgtk.platform.current_bundle()
+        self._auto_expand_tree = self._app.get_setting("auto_expand_tree")
 
         # set up the UI
         self._ui = Ui_EntityTreeForm()
@@ -131,7 +138,7 @@ class EntityTreeForm(QtGui.QWidget):
         if (
             not represents_tasks
             or isinstance(entity_model, ShotgunDeferredEntityModel)
-            or app.context.user is None
+            or self._app.context.user is None
         ):
             self._ui.my_tasks_cb.hide()
 
@@ -160,6 +167,7 @@ class EntityTreeForm(QtGui.QWidget):
                 # the model item name and the Shotgun Entity field name, although
                 # in most (if not all) cases the item name will match without the
                 # need to check the Entity field.
+
                 filter_model = EntityTreeProxyModel(
                     self,
                     [
@@ -173,6 +181,21 @@ class EntityTreeForm(QtGui.QWidget):
                 )
                 filter_model.setSourceModel(entity_model)
                 self._ui.entity_tree.setModel(filter_model)
+
+                # Filter menu
+                # FIXME this only builds once on setting the model
+                self._filter_menu = ShotgunFilterMenu(self)
+                self._filter_menu.set_filter_model(filter_model, connect_signals=True)
+                # FIXME hack for asset tree model. For tree mdoels we should just build filters
+                # based off of the leaf nodes, but since this is a deferred SG model, the actual
+                # leaf ndoes do not get loaded in until the user explicitly clicks into the model
+                entity_type = entity_model.get_entity_type()
+                if entity_type == "Asset":
+                    self._filter_menu._tree_level = 3
+
+                self._filter_menu.build_menu()
+                filter_menu_btn = FilterMenuButton(self, self._filter_menu)
+                self._ui.horizontalLayout_2.addWidget(filter_menu_btn)
 
                 # connect up the filter controls:
                 self._ui.search_ctrl.search_changed.connect(self._on_search_changed)

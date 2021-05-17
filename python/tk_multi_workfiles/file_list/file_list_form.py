@@ -21,7 +21,7 @@ from ..file_model import FileModel
 from ..ui.file_list_form import Ui_FileListForm
 from .file_proxy_model import FileProxyModel
 from ..util import map_to_source, get_source_model
-from ..framework_qtwidgets import ViewItemDelegate
+from ..framework_qtwidgets import FilterMenu, FilterMenuButton, ViewItemDelegate
 
 settings = sgtk.platform.import_framework("tk-framework-shotgunutils", "settings")
 
@@ -123,6 +123,26 @@ class FileListForm(QtGui.QWidget):
         # an event filter that will swallow any non-left-mouse-button double-clicks.
         self._ui.file_list_view.doubleClicked.connect(self._on_item_double_clicked)
         self._ui.file_list_view.viewport().installEventFilter(self)
+
+        visible_fields = [
+            "is_local",
+            "is_published",
+            "entity",
+            "task",
+            "step",
+            "_key",
+        ]
+        ignore_fields = [
+            "_thumbnail_path",
+            "_thumbnail_image",
+        ]
+        self._filter_menu = FilterMenu(self)
+        self._filter_menu.visible_fields = visible_fields
+        self._filter_menu.ignore_fields = ignore_fields
+        filter_menu_btn = FilterMenuButton(self, self._filter_menu)
+
+        # FIXME
+        self._ui.horizontalLayout_3.addWidget(filter_menu_btn)
 
         # Note, we have to keep a handle to the item delegate to help GC
         file_item_delegate = self._setup_view_item_delegate(self._ui.file_list_view)
@@ -398,6 +418,12 @@ class FileListForm(QtGui.QWidget):
             # connect the views to the filtered model:
             self._ui.file_list_view.setModel(filter_model)
             self._ui.file_details_view.setModel(filter_model)
+
+            # Set up the filter menu
+            self._filter_menu.filter_roles = [FileModel.FILE_ITEM_ROLE]
+            self._filter_menu.set_filter_model(filter_model, connect_signals=True)
+            self._filter_menu.build_menu()
+
         else:
             # connect the views to the model:
             self._ui.file_list_view.setModel(model)
@@ -603,6 +629,13 @@ class FileListForm(QtGui.QWidget):
         # try to select the current file from the new items in the model:
         prev_selected_item = self._get_selected_item()
         self._update_selection(prev_selected_item)
+
+        # FIXME update only - do not rebuild
+        # source_model = self._ui.file_list_view.model().sourceModel()
+        # filters = source_model.get_file_item_filters()
+        # self._filter_menu.build_menu(filters)
+        # self._filter_menu.refresh_menu(filters)
+        # self._filter_menu.refresh()
 
     def _on_search_changed(self, search_text):
         """

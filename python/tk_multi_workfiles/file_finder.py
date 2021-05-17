@@ -445,6 +445,9 @@ class FileFinder(QtCore.QObject):
         :returns:                   List of dictionaries, each one containing the details
                                     of an individual published file
         """
+
+        # TODO add config option to add fields
+
         fields = [
             "id",
             "description",
@@ -455,6 +458,7 @@ class FileFinder(QtCore.QObject):
             "name",
             "path",
             "task",
+            "step",
         ]
         published_file_type = sgtk.util.get_published_file_entity_type(self._app.sgtk)
         sg_publishes = self._app.shotgun.find(
@@ -1067,6 +1071,7 @@ class AsyncFileFinder(FileFinder):
             "name",
             "path",
             "task",
+            "task.Task.step",  # TODO add config to add fields
         ]
 
         # load the data into the publish model:

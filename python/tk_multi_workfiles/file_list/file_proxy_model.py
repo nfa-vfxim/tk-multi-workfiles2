@@ -14,10 +14,13 @@ from sgtk.platform.qt import QtCore
 from tank_vendor import six
 
 from ..file_model import FileModel
-from ..framework_qtwidgets import HierarchicalFilteringProxyModel
+
+# from ..framework_qtwidgets import HierarchicalFilteringProxyModel
+from ..framework_qtwidgets import TreeProxyModel
 
 
-class FileProxyModel(HierarchicalFilteringProxyModel):
+class FileProxyModel(TreeProxyModel):
+    # class FileProxyModel(HierarchicalFilteringProxyModel):
     """
     Proxy model used to sort and filter the file model
     """
@@ -34,7 +37,8 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
         :param show_publishes:  True if publishes should be shown, otherwise False
         :param parent:          The parent QObject of this proxy model
         """
-        HierarchicalFilteringProxyModel.__init__(self, parent)
+        # HierarchicalFilteringProxyModel.__init__(self, parent)
+        super(FileProxyModel, self).__init__(parent)
 
         # debug - disable caching!
         # self.enable_caching(False)
@@ -53,7 +57,10 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
     # @show_publishes.setter
     def _set_show_publishes(self, show):
         self._show_publishes = show
+
+        self.layoutAboutToBeChanged.emit()
         self.invalidateFilter()
+        self.layoutChanged.emit()
 
     show_publishes = property(_get_show_publishes, _set_show_publishes)
 
@@ -64,7 +71,10 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
     # @show_work_files.setter
     def _set_show_work_files(self, show):
         self._show_workfiles = show
+
+        self.layoutAboutToBeChanged.emit()
         self.invalidateFilter()
+        self.layoutChanged.emit()
 
     show_work_files = property(_get_show_work_files, _set_show_work_files)
 
@@ -86,10 +96,16 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
         the proxy model so that the filtering is re-run.
         """
         if self._filters.filter_reg_exp != self.filterRegExp():
-            HierarchicalFilteringProxyModel.setFilterRegExp(
-                self, self._filters.filter_reg_exp
-            )
+            super(FileProxyModel, self).setFilterRegExp(self._filters.filter_reg_exp)
+            # self.setFilterRegExp(self._filters.filter_reg_exp)
+
+            # HierarchicalFilteringProxyModel.setFilterRegExp(
+            # self, self._filters.filter_reg_exp
+            # )
+
+        self.layoutAboutToBeChanged.emit()
         self.invalidateFilter()
+        self.layoutChanged.emit()
 
     def _is_row_accepted(self, src_row, src_parent_idx, parent_accepted):
         """
@@ -103,6 +119,12 @@ class FileProxyModel(HierarchicalFilteringProxyModel):
         """
         src_idx = self.sourceModel().index(src_row, 0, src_parent_idx)
         if not src_idx.isValid():
+            return False
+
+        if not super(FileProxyModel, self)._is_row_accepted(
+            src_row, src_parent_idx, parent_accepted
+        ):
+            # Early out if the base model does not accept it
             return False
 
         # try to get the work area and see if this item should be filtered:
