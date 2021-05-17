@@ -36,6 +36,51 @@ class ViewItemConfiguration(HookClass):
         {"attr": "modified_at", "default": "<i>Unknown</i>"},
     ]
 
+    def get_task_item_thumbnail(self, item):
+        thumbnail = item.data(QtCore.Qt.DecorationRole)
+        if not thumbnail:
+            thumbnail = QtGui.QPixmap()
+        return thumbnail
+
+    def get_task_item_title(self, item):
+        # return item.data(QtCore.Qt.DisplayRole)
+        return None
+
+    def get_task_item_subtitle(self, item):
+        return None
+
+    def get_task_item_details(self, item):
+        detail_items = [
+            "<big>{entity}</big>",
+            "{content}",
+        ]
+        extra_display_fields = self.parent.get_setting("my_tasks_extra_display_fields")
+        detail_items.extend(
+            ["{{{f}}}".format(f=field) for field in extra_display_fields]
+        )
+
+        details = "<br/>".join(detail_items)
+        sg_data = item.get_sg_data()
+
+        return (details, sg_data)
+
+    def get_task_item_icons(self, item):
+        icons = {}
+
+        # icons["bottom-left"] = item.model().get_entity_icon("Task")
+        # sg_data = item.get_sg_data()
+        # entity_type = sg_data.get("entity", {}).get("type")
+        # if entity_type:
+        # icons["top-left"] = item.model().get_entity_icon(entity_type)
+
+        return icons
+
+    def get_task_item_width(self, item):
+        return None  # Fallback to default implementation
+
+    def get_task_item_separator(self, item):
+        return False
+
     def get_item_thumbnail(self, item):
         """
         Returns the data to display for this model index item's thumbnail.

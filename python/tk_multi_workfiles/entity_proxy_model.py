@@ -12,17 +12,20 @@ import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 from tank_vendor import six
 
-from .framework_qtwidgets import HierarchicalFilteringProxyModel
+# from .framework_qtwidgets import HierarchicalFilteringProxyModel
+from .framework_qtwidgets import TreeProxyModel
 
 
-class EntityProxyModel(HierarchicalFilteringProxyModel):
+class EntityProxyModel(TreeProxyModel):
+    # class EntityProxyModel(HierarchicalFilteringProxyModel):
     """
     """
 
     def __init__(self, parent, compare_sg_fields=None):
         """
         """
-        HierarchicalFilteringProxyModel.__init__(self, parent)
+        # HierarchicalFilteringProxyModel.__init__(self, parent)
+        super(EntityProxyModel, self).__init__(parent)
         self._compare_fields = compare_sg_fields
 
     def setFilterFixedString(self, pattern):
@@ -76,7 +79,10 @@ class EntityProxyModel(HierarchicalFilteringProxyModel):
         reg_exp = self.filterRegExp()
         if not reg_exp or reg_exp.isEmpty():
             # early out
-            return True
+            # return True
+            return super(EntityProxyModel, self)._is_row_accepted(
+                src_row, src_parent_idx, parent_accepted
+            )
 
         src_idx = self.sourceModel().index(src_row, 0, src_parent_idx)
         if not src_idx.isValid():
@@ -85,7 +91,10 @@ class EntityProxyModel(HierarchicalFilteringProxyModel):
         # test to see if the item 'text' matches:
         if reg_exp.indexIn(src_idx.data(QtCore.Qt.DisplayRole)) != -1:
             # found a match so early out!
-            return True
+            # return True
+            return super(EntityProxyModel, self)._is_row_accepted(
+                src_row, src_parent_idx, parent_accepted
+            )
 
         if self._compare_fields:
             # see if we have sg data:
