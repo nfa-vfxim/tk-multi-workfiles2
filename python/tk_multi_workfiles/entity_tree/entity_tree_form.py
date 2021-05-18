@@ -27,7 +27,12 @@ from ..util import (
 )
 from ..util import get_sg_entity_name_field
 from ..entity_models import ShotgunDeferredEntityModel
-from ..framework_qtwidgets import FilterItem, FilterMenu, TreeProxyModel
+from ..framework_qtwidgets import (
+    FilterItem,
+    FilterMenu,
+    ShotgunFilterMenu,
+    TreeProxyModel,
+)
 
 shotgun_globals = sgtk.platform.import_framework(
     "tk-framework-shotgunutils", "shotgun_globals"
@@ -177,15 +182,8 @@ class EntityTreeForm(QtGui.QWidget):
                 self._ui.entity_tree.setModel(filter_model)
 
                 # Filter menu
-                # FIXME this entity form could be any entity type -- not just task
-                # TODO support any entity type
-                entity_filters = self.get_entity_filters(entity_model)
-                self._filter_menu = FilterMenu(entity_filters, self)
-                if not self._filter_menu.actions():
-                    self._filter_menu.addAction("No filters available")
-                # TODO
-                # self._filter_menu = FilterMenu(entity_model.get_task_filters(), self)
-                # FIXME
+                # FIXME this only builds once on setting the model
+                self._filter_menu = ShotgunFilterMenu(entity_model, self)
                 self._filter_menu.filters_changed.connect(self._update_entity_filters)
                 filter_menu_btn = QtGui.QToolButton()
                 filter_menu_btn.setPopupMode(QtGui.QToolButton.InstantPopup)
@@ -193,8 +191,8 @@ class EntityTreeForm(QtGui.QWidget):
                 self._ui.horizontalLayout_2.addWidget(filter_menu_btn)
                 filter_menu_btn.setMenu(self._filter_menu)
 
-                # FIXME
-                if not entity_filters:
+                # if not entity_filters:
+                if not self._filter_menu.actions():
                     filter_menu_btn.hide()
 
                 # connect up the filter controls:
@@ -216,112 +214,6 @@ class EntityTreeForm(QtGui.QWidget):
 
     def _update_entity_filters(self):
         self._ui.entity_tree.model().filter_items = [self._filter_menu.active_filter]
-
-    def get_entity_filters(self, entity_model):
-        """
-        Return a list of filters for task entity.
-        """
-
-        # entity_type = "Task"
-        # get_sg_entity_name_field(entity_model.get_entity_type()),
-        entity_type = entity_model.get_entity_type()
-        if self._app.tank.pipeline_configuration.is_site_configuration():
-            # site configuration (no project id). Return None which is
-            # consistent with core.
-            project_id = None
-        else:
-            project_id = self._app.tank.pipeline_configuration.get_project_id()
-
-        fields = shotgun_globals.get_entity_fields(entity_type, project_id=project_id)
-        fields.sort()
-
-        valid_field_types = [
-            "text",
-            "number",
-            "status_list",
-        ]
-        invalid_field_types = ["image"]
-
-        # FIXME more automated way to retrieve shotgun field data from model
-        def get_index_field_data(index, sg_field):
-            if not index.isValid():
-                return None
-            item = index.model().item(index.row(), index.column())
-            sg_data = item.get_sg_data()
-            return sg_data.get(sg_field)
-
-        filter_data = {}
-
-        for group_row in range(entity_model.rowCount()):
-            entity_item = entity_model.item(group_row)
-            sg_data = entity_item.get_sg_data()
-
-            # FIXME if this is a group header.. it has no sg data - but its children do..
-            if not sg_data:
-                continue
-
-            for field, value in sg_data.items():
-                if field not in fields:
-                    continue
-
-                field_type = shotgun_globals.get_data_type(
-                    entity_type, field, project_id
-                )
-                # if field_type not in valid_field_types:
-                if field_type in invalid_field_types:
-                    continue
-
-                field_display = shotgun_globals.get_field_display_name(
-                    entity_type, field, project_id
-                )
-                field_id = field
-
-                if isinstance(value, list):
-                    values_list = value
-                else:
-                    values_list = [value]
-
-                for val in values_list:
-                    if isinstance(val, dict):
-                        # assuming it is an entity dict
-                        value_id = val.get("name", str(val))
-                        field_display = "{} {}".format(
-                            shotgun_globals.get_type_display_name(
-                                val.get("type"), project_id
-                            ),
-                            field_display,
-                        )
-                    else:
-                        value_id = val
-
-                    if field_id in filter_data:
-                        filter_data[field_id]["values"].setdefault(
-                            value_id, {}
-                        ).setdefault("count", 0)
-                        filter_data[field_id]["values"][value_id]["count"] += 1
-                        filter_data[field_id]["values"][value_id]["value"] = val
-                    else:
-                        filter_data[field_id] = {
-                            "name": field_display,
-                            "type": field_type,
-                            "values": {value_id: {"value": val, "count": 1}},
-                        }
-                    # TODO icons?
-                    # filter_data[field]["values"][value]["icon"] = entity_item.model().get_entity_icon(entity_type)
-
-        filters = [
-            {
-                # "filter_type": FilterItem.TYPE_LIST,
-                "filter_type": data["type"],
-                "filter_op": FilterItem.OP_EQUAL,
-                # "filter_value": data["values"].keys(),
-                "filter_value": data["values"],
-                "name": data["name"],
-                "data_func": lambda i, f=field: get_index_field_data(i, f),
-            }
-            for field, data in filter_data.items()
-        ]
-        return filters
 
     @property
     def step_entity_filter(self):

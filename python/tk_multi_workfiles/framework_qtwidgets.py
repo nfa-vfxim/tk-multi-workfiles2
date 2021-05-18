@@ -51,4 +51,5 @@ ViewItemDelegate = delegates.ViewItemDelegate
 filtering = sgtk.platform.import_framework("tk-framework-qtwidgets", "filtering")
 FilterItem = filtering.FilterItem
 FilterMenu = filtering.FilterMenu
+ShotgunFilterMenu = filtering.ShotgunFilterMenu
 TreeProxyModel = filtering.TreeProxyModel
