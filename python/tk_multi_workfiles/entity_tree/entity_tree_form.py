@@ -30,6 +30,7 @@ from ..entity_models import ShotgunDeferredEntityModel
 from ..framework_qtwidgets import (
     FilterItem,
     FilterMenu,
+    FilterMenuButton,
     ShotgunFilterMenu,
     TreeProxyModel,
 )
@@ -183,17 +184,10 @@ class EntityTreeForm(QtGui.QWidget):
 
                 # Filter menu
                 # FIXME this only builds once on setting the model
-                self._filter_menu = ShotgunFilterMenu(entity_model, self)
+                self._filter_menu = ShotgunFilterMenu(entity_model, filter_model, self)
                 self._filter_menu.filters_changed.connect(self._update_entity_filters)
-                filter_menu_btn = QtGui.QToolButton()
-                filter_menu_btn.setPopupMode(QtGui.QToolButton.InstantPopup)
-                filter_menu_btn.setText("Filters")
+                filter_menu_btn = FilterMenuButton(self._filter_menu)
                 self._ui.horizontalLayout_2.addWidget(filter_menu_btn)
-                filter_menu_btn.setMenu(self._filter_menu)
-
-                # if not entity_filters:
-                if not self._filter_menu.actions():
-                    filter_menu_btn.hide()
 
                 # connect up the filter controls:
                 self._ui.search_ctrl.search_changed.connect(self._on_search_changed)
