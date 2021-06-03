@@ -245,7 +245,8 @@ configuration:
         allows_empty: False
         values:
           type: str
-        default_value: ['All', 'Working', 'Publishes']
+        # default_value: ['All', 'Working', 'Publishes']
+        default_value: ['All']
 
     # Save specific options
     #

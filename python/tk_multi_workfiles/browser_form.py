@@ -110,18 +110,18 @@ class BrowserForm(QtGui.QWidget):
         self._file_filters.users_changed.connect(self._on_file_filters_users_changed)
 
         # Build the step filter UI
-        self._step_list_widget = StepListWidget(self._ui.step_filter_list_widget)
-        self._ui.select_all_step_button.pressed.connect(
-            self._step_list_widget.select_all_steps
-        )
-        self._ui.select_none_step_button.pressed.connect(
-            self._step_list_widget.unselect_all_steps
-        )
-        # Notify it when we change the entity type being displayed
-        self.entity_type_focus_changed.connect(
-            self._step_list_widget.set_widgets_for_entity_type
-        )
-        self._step_list_widget.step_filter_changed.connect(self._on_step_filter_changed)
+        # self._step_list_widget = StepListWidget(self._ui.step_filter_list_widget)
+        # self._ui.select_all_step_button.pressed.connect(
+        #     self._step_list_widget.select_all_steps
+        # )
+        # self._ui.select_none_step_button.pressed.connect(
+        #     self._step_list_widget.unselect_all_steps
+        # )
+        # # Notify it when we change the entity type being displayed
+        # self.entity_type_focus_changed.connect(
+        #     self._step_list_widget.set_widgets_for_entity_type
+        # )
+        # self._step_list_widget.step_filter_changed.connect(self._on_step_filter_changed)
 
     def shut_down(self):
         """
@@ -129,7 +129,7 @@ class BrowserForm(QtGui.QWidget):
         """
         signals_blocked = self.blockSignals(True)
         try:
-            self._step_list_widget.save_step_filters_if_changed()
+            # self._step_list_widget.save_step_filters_if_changed()
             # clean up my tasks form:
             if self._my_tasks_form:
                 self._my_tasks_form.shut_down()
@@ -221,16 +221,16 @@ class BrowserForm(QtGui.QWidget):
             self._my_tasks_form.create_new_task.connect(self.create_new_task)
 
         for caption, step_filter_on, model in entity_models:
-            step_entity_filter = None
-            if model.represents_tasks:
-                # If the model handles Tasks, either directly or from deferred
-                # queries, check if we can narrow down the list of Steps we
-                # display based on the primary Entity type. For deferred queries,
-                # we simply use the Entity type from the primary model. For example
-                # if we have "Shot" -> "Tasks", we only display Shot Steps.
-                # For a model retrieving Tasks, this has to be set explicitly with a
-                # setting that we retrieve here with `step_filter_on`.
-                step_entity_filter = step_filter_on or model.get_entity_type()
+            # step_entity_filter = None
+            # if model.represents_tasks:
+            #     # If the model handles Tasks, either directly or from deferred
+            #     # queries, check if we can narrow down the list of Steps we
+            #     # display based on the primary Entity type. For deferred queries,
+            #     # we simply use the Entity type from the primary model. For example
+            #     # if we have "Shot" -> "Tasks", we only display Shot Steps.
+            #     # For a model retrieving Tasks, this has to be set explicitly with a
+            #     # setting that we retrieve here with `step_filter_on`.
+            #     step_entity_filter = step_filter_on or model.get_entity_type()
 
             entity_form = EntityTreeForm(
                 model,
@@ -238,7 +238,8 @@ class BrowserForm(QtGui.QWidget):
                 allow_task_creation,
                 [],
                 parent=self,
-                step_entity_filter=step_entity_filter,
+                # step_entity_filter=step_entity_filter,
+                step_entity_filter=None,
             )
             entity_form.entity_selected.connect(self._on_entity_selected)
             self._ui.task_browser_tabs.addTab(entity_form, caption)
@@ -631,13 +632,13 @@ class BrowserForm(QtGui.QWidget):
         self._on_selected_entity_changed(selection, breadcrumb_trail)
         self.entity_type_focus_changed.emit(form.step_entity_filter)
 
-    def _on_step_filter_changed(self, step_list):
-        """
-        Called when Step filters are changed.
+    # def _on_step_filter_changed(self, step_list):
+    #     """
+    #     Called when Step filters are changed.
 
-        Emit step_filter_changed with a filter build from the list which will
-        trigger a refresh of the file browser.
+    #     Emit step_filter_changed with a filter build from the list which will
+    #     trigger a refresh of the file browser.
 
-        :param step_list: A list of Shotgun Step dictionaries.
-        """
-        self.step_filter_changed.emit(get_filter_from_filter_list(step_list))
+    #     :param step_list: A list of Shotgun Step dictionaries.
+    #     """
+    #     self.step_filter_changed.emit(get_filter_from_filter_list(step_list))

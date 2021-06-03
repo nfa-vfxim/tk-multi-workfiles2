@@ -182,7 +182,25 @@ class FileItem(object):
         """
         :returns:   The Shotgun step entity dictionary that this file is associated with.
         """
-        return self._details.get("step") or self._publish_details.get("step")
+        return (
+            self._details.get("step")
+            or self._publish_details.get("step")
+            or self._property_from_key("Step")
+        )
+
+    @property
+    def asset(self):
+        return self._property_from_key("Asset")
+
+    @property
+    def asset_type(self):
+        return self._property_from_key("sg_asset_type")
+
+    def _property_from_key(self, property_name):
+        for name, value in self._key:
+            if name == property_name:
+                return value
+        return None
 
     # @property
     def _get_thumbnail_path(self):

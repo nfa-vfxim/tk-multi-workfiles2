@@ -105,6 +105,9 @@ class EntityProxyModel(TreeProxyModel):
 
         # default is to not match!
         return False
+        # return super(EntityProxyModel, self)._is_row_accepted(
+        # src_row, src_parent_idx, parent_accepted
+        # )
 
     def _sg_data_matches_r(self, sg_data, compare_fields, reg_exp):
         """

@@ -19,6 +19,7 @@ from .user_cache import g_user_cache
 from .file_search_cache import FileSearchCache
 from .util import value_to_str
 from .errors import MissingTemplatesError
+from .framework_qtwidgets import FilterItem
 
 shotgun_data = sgtk.platform.import_framework(
     "tk-framework-shotgunutils", "shotgun_data"
@@ -519,6 +520,81 @@ class FileModel(QtGui.QStandardItemModel, ViewItemRolesMixin):
             self.VIEW_ITEM_WIDTH_ROLE: view_item_config_hook.get_item_width,
             self.VIEW_ITEM_SEPARATOR_ROLE: view_item_config_hook.get_item_separator,
         }
+
+    @classmethod
+    def get_file_data(cls, index, field):
+        """
+        Callback to get file item data.
+        """
+
+        file_item = index.data(cls.FILE_ITEM_ROLE)
+        if not file_item:
+            return None
+
+        if hasattr(file_item, field):
+            return getattr(file_item, field)
+
+        return None
+
+    def get_file_item_filters(self):
+        """
+        Return the definitions for the filterable fields.
+        """
+
+        filter_data = {}
+
+        # FIXME let the filter item class define what should be ignored
+        ignore_props = [
+            "_thumbnail_path",
+            "_thumbnail_image",
+        ]
+
+        for header_row in range(self.rowCount()):
+            header_index = self.index(header_row, 0, QtCore.QModelIndex())
+
+            for file_row in range(self.rowCount(header_index)):
+                file_item_index = self.index(file_row, 0, header_index)
+
+                file_item = file_item_index.data(self.FILE_ITEM_ROLE)
+                if not file_item:
+                    continue
+
+                props = vars(file_item).items()
+                for prop, value in props:
+                    if value is None or prop in ignore_props:
+                        continue
+
+                    if isinstance(value, dict):
+                        value_id = value.get("name", str(value))
+                        filter_value = value_id
+                    else:
+                        value_id = value
+                        filter_value = value
+
+                    if prop in filter_data:
+                        filter_data[prop]["values"].setdefault(value_id, {}).setdefault(
+                            "count", 0
+                        )
+                        filter_data[prop]["values"][value_id]["count"] += 1
+                        filter_data[prop]["values"][value_id]["value"] = filter_value
+
+                    else:
+                        try:
+                            # FIXME handle unhashable types
+                            filter_data[prop] = {
+                                "name": prop,
+                                "type": FilterItem.TYPE_LIST,  # FIXME this just defaults all to list type
+                                "data_func": lambda idx, field=prop: self.get_file_data(
+                                    idx, field
+                                ),
+                                "values": {
+                                    value_id: {"value": filter_value, "count": 1}
+                                },
+                            }
+                        except:
+                            pass
+
+        return filter_data
 
     @staticmethod
     def sanitize_data(data, role):
