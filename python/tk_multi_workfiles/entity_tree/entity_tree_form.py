@@ -186,8 +186,9 @@ class EntityTreeForm(QtGui.QWidget):
                 # FIXME this only builds once on setting the model
                 # self._filter_menu = ShotgunFilterMenu(entity_model, filter_model, self)
                 self._filter_menu = ShotgunFilterMenu(self)
-                self._filter_menu.set_filter_model(filter_model)
-                self._filter_menu.filters_changed.connect(self._update_entity_filters)
+                self._filter_menu.set_filter_model(filter_model, connect_signals=True)
+                # self._filter_menu.filters_changed.connect(self._update_entity_filters)
+                self._filter_menu.build_menu()
                 filter_menu_btn = FilterMenuButton(self._filter_menu)
                 self._ui.horizontalLayout_2.addWidget(filter_menu_btn)
 
@@ -208,8 +209,8 @@ class EntityTreeForm(QtGui.QWidget):
         if selection_model:
             selection_model.selectionChanged.connect(self._on_selection_changed)
 
-    def _update_entity_filters(self):
-        self._ui.entity_tree.model().filter_items = [self._filter_menu.active_filter]
+    # def _update_entity_filters(self):
+    #     self._ui.entity_tree.model().filter_items = [self._filter_menu.active_filter]
 
     @property
     def step_entity_filter(self):
