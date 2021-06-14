@@ -12,19 +12,23 @@ import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 from tank_vendor import six
 
-from .framework_qtwidgets import HierarchicalFilteringProxyModel
+from .framework_qtwidgets import TreeProxyModel
 
 from .util import get_model_str
 
 
-class EntityProxyModel(HierarchicalFilteringProxyModel):
+class EntityProxyModel(TreeProxyModel):
     """
+    Filter model for a Shotgun entity model.
     """
 
     def __init__(self, parent, compare_sg_fields=None):
         """
+        Constructor
         """
-        HierarchicalFilteringProxyModel.__init__(self, parent)
+
+        super(EntityProxyModel, self).__init__(parent)
+
         self._compare_fields = compare_sg_fields
 
     def setFilterFixedString(self, pattern):
@@ -71,6 +75,13 @@ class EntityProxyModel(HierarchicalFilteringProxyModel):
         :param parent_accepted: True if a parent item has been accepted by the filter
         :returns:               True if this index should be accepted, otherwise False
         """
+
+        base_model_accepted = super(EntityProxyModel, self)._is_row_accepted(
+            src_row, src_parent_idx, parent_accepted
+        )
+        if not base_model_accepted:
+            return False
+
         # if the parent is accepted then this node is accepted by default:
         if parent_accepted:
             return True

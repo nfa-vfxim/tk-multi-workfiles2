@@ -19,7 +19,7 @@ from sgtk.platform.qt import QtCore, QtGui
 
 from ..ui.entity_tree_form import Ui_EntityTreeForm
 from .entity_tree_proxy_model import EntityTreeProxyModel
-from ..framework_qtwidgets import Breadcrumb, overlay_widget
+from ..framework_qtwidgets import Breadcrumb, ShotgunFilterMenu, overlay_widget
 from ..util import (
     get_model_str,
     map_to_source,
@@ -174,6 +174,33 @@ class EntityTreeForm(QtGui.QWidget):
                 )
                 filter_model.setSourceModel(entity_model)
                 self._ui.entity_tree.setModel(filter_model)
+
+                # Filter menu
+                self._filter_menu = ShotgunFilterMenu(self)
+
+                # FIXME don't hard code this - pass in the visible fields
+                entity_type = entity_model.get_entity_type()
+                if entity_type == "Task":
+                    self._filter_menu.visible_fields = [
+                        "Task.addressings_cc",
+                        "Task.entity",
+                        "Task.content",
+                    ]
+                elif entity_type == "Asset":
+                    self._filter_menu.visible_fields = [
+                        "Task.step",
+                        "Task.entity",
+                        "Task.content",
+                    ]
+                    # FIXME hack for asset tree model. For tree mdoels we should just build filters
+                    # based off of the leaf nodes, but since this is a deferred SG model, the actual
+                    # leaf ndoes do not get loaded in until the user explicitly clicks into the model
+                    self._filter_menu._tree_level = 3
+
+                self._filter_menu.set_filter_model(filter_model)
+
+                self._filter_menu.build_menu()
+                self._ui.filter_menu_btn.setMenu(self._filter_menu)
 
                 # connect up the filter controls:
                 self._ui.search_ctrl.search_changed.connect(self._on_search_changed)

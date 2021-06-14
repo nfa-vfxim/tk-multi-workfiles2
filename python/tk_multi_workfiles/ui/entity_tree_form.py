@@ -38,6 +38,9 @@ class Ui_EntityTreeForm(object):
 "}")
         self.search_ctrl.setObjectName("search_ctrl")
         self.horizontalLayout_2.addWidget(self.search_ctrl)
+        self.filter_menu_btn = FilterMenuButton(EntityTreeForm)
+        self.filter_menu_btn.setObjectName("filter_menu_btn")
+        self.horizontalLayout_2.addWidget(self.filter_menu_btn)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.entity_tree = QtGui.QTreeView(EntityTreeForm)
         self.entity_tree.setStyleSheet("QTreeView::item {\n"
@@ -71,6 +74,7 @@ class Ui_EntityTreeForm(object):
         self.my_tasks_cb.setText(QtGui.QApplication.translate("EntityTreeForm", "My Tasks Only", None, QtGui.QApplication.UnicodeUTF8))
         self.new_task_btn.setText(QtGui.QApplication.translate("EntityTreeForm", "+ New Task", None, QtGui.QApplication.UnicodeUTF8))
         self.search_ctrl.setAccessibleName(QtGui.QApplication.translate("EntityTreeForm", "Search Entity", None, QtGui.QApplication.UnicodeUTF8))
+        self.filter_menu_btn.setText(QtGui.QApplication.translate("EntityTreeForm", "Filter", None, QtGui.QApplication.UnicodeUTF8))
 
-from ..framework_qtwidgets import SearchWidget
+from ..framework_qtwidgets import FilterMenuButton, SearchWidget
 from . import resources_rc
