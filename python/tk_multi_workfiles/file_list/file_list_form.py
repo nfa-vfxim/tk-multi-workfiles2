@@ -123,6 +123,7 @@ class FileListForm(QtGui.QWidget):
             "{role}.is_local".format(role=FileModel.FILE_ITEM_ROLE),
             "{role}.is_published".format(role=FileModel.FILE_ITEM_ROLE),
             "{role}.name".format(role=FileModel.FILE_ITEM_ROLE),
+            "{role}.step".format(role=FileModel.FILE_ITEM_ROLE),
         ]
         self._ui.filter_menu_btn.setMenu(self._filter_menu)
 
