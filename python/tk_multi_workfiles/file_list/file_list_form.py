@@ -21,6 +21,7 @@ from ..file_model import FileModel
 from ..ui.file_list_form import Ui_FileListForm
 from .file_proxy_model import FileProxyModel
 from .file_list_item_delegate import FileListItemDelegate
+from ..framework_qtwidgets import FilterMenu, FilterMenuButton
 from ..util import get_model_data, map_to_source, get_source_model
 
 
@@ -115,6 +116,15 @@ class FileListForm(QtGui.QWidget):
         # Note, we have to keep a handle to the item delegate to help GC
         self._item_delegate = FileListItemDelegate(self._ui.file_list_view)
         self._ui.file_list_view.setItemDelegate(self._item_delegate)
+
+        self._filter_menu = FilterMenu(self)
+        self._filter_menu.filter_roles = [FileModel.FILE_ITEM_ROLE]
+        self._filter_menu.visible_fields = [
+            "{role}.is_local".format(role=FileModel.FILE_ITEM_ROLE),
+            "{role}.is_published".format(role=FileModel.FILE_ITEM_ROLE),
+            "{role}.name".format(role=FileModel.FILE_ITEM_ROLE),
+        ]
+        self._ui.filter_menu_btn.setMenu(self._filter_menu)
 
     def shut_down(self):
         """
@@ -282,6 +292,11 @@ class FileListForm(QtGui.QWidget):
             # connect the views to the filtered model:
             self._ui.file_list_view.setModel(filter_model)
             self._ui.file_details_view.setModel(filter_model)
+
+            # Set up the filter menu
+            self._filter_menu.set_filter_model(filter_model)
+            self._filter_menu.build_menu()
+
         else:
             # connect the views to the model:
             self._ui.file_list_view.setModel(model)
