@@ -12,12 +12,12 @@ import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 from tank_vendor import six
 
-from .framework_qtwidgets import TreeProxyModel
+from .framework_qtwidgets import FilterItemTreeProxyModel
 
 from .util import get_model_str
 
 
-class EntityProxyModel(TreeProxyModel):
+class EntityProxyModel(FilterItemTreeProxyModel):
     """
     Filter model for a Shotgun entity model.
     """

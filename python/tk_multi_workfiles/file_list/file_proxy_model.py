@@ -14,11 +14,11 @@ from sgtk.platform.qt import QtCore
 from tank_vendor import six
 
 from ..file_model import FileModel
-from ..framework_qtwidgets import TreeProxyModel
+from ..framework_qtwidgets import FilterItemTreeProxyModel
 from ..util import get_model_data, get_model_str
 
 
-class FileProxyModel(TreeProxyModel):
+class FileProxyModel(FilterItemTreeProxyModel):
     """
     Proxy model used to sort and filter the file model
     """
