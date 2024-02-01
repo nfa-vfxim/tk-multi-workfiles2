@@ -120,9 +120,6 @@ class SceneOperation(HookClass):
         elif operation == "save_as":
             old_path = nuke.root()["name"].value()
             try:
-                # rename script:
-                nuke.root()["name"].setValue(file_path)
-
                 # reset all write nodes:
                 self._reset_write_node_render_paths()
 
